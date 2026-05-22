@@ -38,3 +38,34 @@ export const sendOrderConfirmationEmail = async (
 
 
 
+export const sendOtpEmail = async (email: string, otp: string) => {
+    if (!process.env.RESEND_API_KEY) {
+        console.warn("RESEND_API_KEY not found. Skipping OTP email.");
+        console.log(`[DEVELOPMENT ONLY] OTP for ${email} is: ${otp}`);
+        return;
+    }
+
+    try {
+        await resend.emails.send({
+            from: "Amozun Security <onboarding@resend.dev>",
+            to: email,
+            subject: `Your Amozun Verification Code: ${otp}`,
+            html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Security Verification</h2>
+          <p>Your one-time password (OTP) is:</p>
+          <h1 style="font-size: 32px; letter-spacing: 4px; color: #FF9900;">${otp}</h1>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you did not request this, please ignore this email.</p>
+        </div>
+      `,
+        });
+        console.log(`OTP email sent to ${email}`);
+    } catch (error) {
+        console.error("Failed to send OTP email:", error);
+        throw new Error("Failed to send verification email. Please try again.");
+    }
+};
+
+
+

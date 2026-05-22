@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "kysely": "^0.29.2",
     "pg": "^8.21.0",
+    "redis": "^5.12.1",
     "resend": "^6.12.3"
   },
   "devDependencies": {

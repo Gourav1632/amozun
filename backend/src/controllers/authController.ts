@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "../db/index.js";
 import { AppError } from "../utils/AppError.js";
+import { redisClient } from "../db/redis.js";
+import { sendOtpEmail } from "../services/emailService.js";
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
@@ -11,14 +13,17 @@ const COOKIE_OPTIONS = {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
-export const signup = async (req: Request, res: Response) => {
-    const { name, email, password } = req.body;
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-    if (!name || !email || !password) {
-        throw new AppError("Name, email, and password are required.", 400);
-    }
+export const sendSigupOTP = async (
+    req: Request,
+    res: Response
+) => {
 
-    // Check if user already exists
+    const { email } = req.body;
+
+    if (!email) throw new AppError("Email is required.", 400);
+
     const existing = await db
         .selectFrom("users")
         .where("email", "=", email)
@@ -28,6 +33,33 @@ export const signup = async (req: Request, res: Response) => {
     if (existing) {
         throw new AppError("Email already registered.", 409);
     }
+
+    const otp = generateOTP();
+
+    await redisClient.setEx(`signup-otp:${email}`, 5 * 60, otp);
+
+    await sendOtpEmail(email, otp);
+
+    res.json({
+        status: 'success',
+        message: 'OTP sent to email.'
+    });
+}
+
+export const signup = async (req: Request, res: Response) => {
+    const { name, email, password, otp } = req.body;
+
+    if (!name || !email || !password || !otp) {
+        throw new AppError("Name, email, password and OTP are required.", 400);
+    }
+
+    // verify otp from redis
+    const storedOTP = await redisClient.get(`signup-otp:${email}`);
+    if (!storedOTP || storedOTP !== otp) {
+        throw new AppError('Invalid or expire OTP.', 401);
+    }
+
+    await redisClient.del(`signup-otp:${email}`);
 
     const passwordHash = await bcrypt.hash(password, 12);
 
