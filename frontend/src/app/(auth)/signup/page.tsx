@@ -1,0 +1,233 @@
+'use client'
+
+import { useAuth } from "@/hooks/useAuth";
+import { apiFetch } from "@/lib/api";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export default function SignupPage() {
+    const router = useRouter();
+    const { login } = useAuth();
+    
+    const [step, setStep] = useState(1);
+    const [email, setEmail] = useState("");
+    const [otp, setOtp] = useState("");
+    const [name, setName] = useState("");
+    const [password, setPassword] = useState("");
+    
+    const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSendOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setIsLoading(true);
+
+        try {
+            await apiFetch('/auth/send-signup-otp', {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+            setStep(2);
+        } catch (err: any) {
+            setError(err.message || 'Something went wrong');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerifyOtp = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!otp || otp.length < 6) {
+            setError("Please enter a valid OTP");
+            return;
+        }
+        setError("");
+        setStep(3);
+    };
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setIsLoading(true);
+
+        try {
+            const res = await apiFetch('/auth/signup', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password, otp })
+            });
+
+            login(res.data);
+            router.push('/');
+        } catch (err: any) {
+            setError(err.message || 'Something went wrong');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center pt-4 px-4">
+            {/* Logo */}
+            <Link href="/" className="mb-4">
+                <span className="text-3xl font-bold tracking-tight text-[#0F1111]">
+                    amozun<span className="text-orange-500">.in</span>
+                </span>
+            </Link>
+
+            {/* Sign up card */}
+            <div className="w-full max-w-[350px] border border-[#ddd] rounded-lg p-6 mb-4"
+                 style={{ boxShadow: '0 2px 4px 0 rgba(0,0,0,.13)' }}>
+
+                <h1 className="text-[28px] font-normal text-[#0F1111] mb-3">
+                    Create Account
+                </h1>
+
+                {error && (
+                    <div className="flex items-start gap-2 p-3 mb-3 bg-white border border-red-400 rounded-md">
+                        <span className="text-red-600 text-sm">⚠</span>
+                        <p className="text-sm text-red-700">{error}</p>
+                    </div>
+                )}
+
+                {/* Step 1: Email */}
+                {step === 1 && (
+                    <form onSubmit={handleSendOtp}>
+                        <div className="mb-4">
+                            <label className="text-[13px] font-bold text-[#0F1111] block mb-1">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
+                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                required
+                                autoFocus
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full py-[6px] text-[13px] rounded-lg cursor-pointer border border-[#a88734]
+                                       bg-gradient-to-b from-[#f7dea0] to-[#f0c14b]
+                                       hover:from-[#f5d78e] hover:to-[#eeb933]
+                                       active:from-[#f0c14b] active:to-[#f0c14b]
+                                       disabled:opacity-60 disabled:cursor-not-allowed mb-4"
+                        >
+                            {isLoading ? "Sending OTP..." : "Verify email"}
+                        </button>
+                    </form>
+                )}
+
+                {/* Step 2: OTP */}
+                {step === 2 && (
+                    <form onSubmit={handleVerifyOtp}>
+                        <div className="mb-2">
+                            <p className="text-[13px] text-[#0F1111] mb-2">
+                                To verify your email, we&apos;ve sent a One Time Password (OTP) to <span className="font-bold">{email}</span> <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => setStep(1)}>(Change)</span>
+                            </p>
+                            <label className="text-[13px] font-bold text-[#0F1111] block mb-1">
+                                Enter OTP
+                            </label>
+                            <input
+                                type="text"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
+                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)] tracking-widest text-center"
+                                required
+                                autoFocus
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full py-[6px] text-[13px] rounded-lg cursor-pointer border border-[#a88734]
+                                       bg-gradient-to-b from-[#f7dea0] to-[#f0c14b]
+                                       hover:from-[#f5d78e] hover:to-[#eeb933]
+                                       active:from-[#f0c14b] active:to-[#f0c14b] mt-4 mb-4"
+                        >
+                            Continue
+                        </button>
+                    </form>
+                )}
+
+                {/* Step 3: Name & Password */}
+                {step === 3 && (
+                    <form onSubmit={handleSignup}>
+                        <div className="mb-3">
+                            <label className="text-[13px] font-bold text-[#0F1111] block mb-1">
+                                Your name
+                            </label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="First and last name"
+                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
+                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                required
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="text-[13px] font-bold text-[#0F1111] block mb-1">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="At least 6 characters"
+                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
+                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                required
+                                minLength={6}
+                            />
+                            <p className="text-[11px] text-[#0F1111] mt-1 flex items-center gap-1">
+                                <span className="text-blue-600 italic">i</span> Passwords must be at least 6 characters.
+                            </p>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full py-[6px] text-[13px] rounded-lg cursor-pointer border border-[#a88734]
+                                       bg-gradient-to-b from-[#f7dea0] to-[#f0c14b]
+                                       hover:from-[#f5d78e] hover:to-[#eeb933]
+                                       active:from-[#f0c14b] active:to-[#f0c14b]
+                                       disabled:opacity-60 disabled:cursor-not-allowed mb-4"
+                        >
+                            {isLoading ? "Creating account..." : "Verify and Create account"}
+                        </button>
+                    </form>
+                )}
+
+                <p className="text-[12px] text-[#111] leading-[1.5]">
+                    By creating an account, you agree to Amozun&apos;s{' '}
+                    <Link href="#" className="text-blue-600 hover:text-orange-500 hover:underline">
+                        Conditions of Use
+                    </Link>{' '}and{' '}
+                    <Link href="#" className="text-blue-600 hover:text-orange-500 hover:underline">
+                        Privacy Notice
+                    </Link>.
+                </p>
+
+                {/* Login link */}
+                <div className="mt-4 pt-4 border-t border-[#e7e7e7]">
+                    <div className="text-[13px] text-[#0F1111]">
+                        Already have an account?{' '}
+                        <Link href="/login" className="text-blue-600 hover:text-orange-500 hover:underline flex items-center inline-flex">
+                            Sign in <span className="ml-1">▶</span>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

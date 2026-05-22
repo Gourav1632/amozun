@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+
+@theme {
+  /* Amazon color palette */
+  --color-nav-primary: #131A22;
+  --color-nav-secondary: #232F3E;
+  --color-amz-yellow: #FEBD69;
+  --color-amz-orange: #F90;
+  --color-amz-blue: #007185;
+  --color-background-main: #EAEDED;
+
+  --font-sans: "Inter", system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-background-main text-gray-900;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .link-footer {
+    @apply text-white;
+  }
+
+  .link-footer h5 {
+    @apply font-bold text-base mb-3;
+  }
+
+  .link-footer ul li {
+    @apply text-sm text-gray-300 hover:underline mb-2;
+  }
+
+  .footer-link-services li a {
+    @apply flex flex-col text-xs text-gray-400 hover:underline;
+  }
+
+  .footer-link-services li b {
+    @apply text-gray-300 font-normal;
+  }
+
+  .footer-link-services li p {
+    @apply text-gray-500;
+  }
 }

@@ -1,9 +1,10 @@
 import type { Request, Response } from "express";
+import { sql } from "kysely";
 import { db } from "../db/index.js";
 import { AppError } from "../utils/AppError.js";
 
 export const getAllProducts = async (req: Request, res: Response) => {
-    const { search, category, page = "1", limit = "12" } = req.query;
+    const { search, category, page = "1", limit = "12", minPrice, maxPrice, minDiscount, sortBy, sortOrder } = req.query;
 
     let query = db
         .selectFrom('products')
@@ -29,15 +30,42 @@ export const getAllProducts = async (req: Request, res: Response) => {
     }
 
     if (category && typeof category === 'string') {
-        query = query.where('categories.slug', '=', category);
+        query = query.where('categories.slug', 'ilike', `%${category}%`);
+    }
+
+    if (minPrice && typeof minPrice === 'string') {
+        query = query.where('products.price', '>=', parseFloat(minPrice));
+    }
+
+    if (maxPrice && typeof maxPrice === 'string') {
+        query = query.where('products.price', '<=', parseFloat(maxPrice));
+    }
+
+    if (minDiscount && typeof minDiscount === 'string') {
+        query = query.where(sql<number>`((products.mrp - products.price) * 100.0 / products.mrp)`, '>=', parseFloat(minDiscount));
     }
 
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const offset = (pageNum - 1) * limitNum;
 
+    let orderColumn: any = 'products.created_at';
+    let orderDirection: 'asc' | 'desc' = 'desc';
+
+    if (sortBy === 'price') {
+        orderColumn = 'products.price';
+    } else if (sortBy === 'discount') {
+        orderColumn = sql`((products.mrp - products.price) * 100.0 / products.mrp)`;
+    }
+
+    if (sortOrder === 'asc') {
+        orderDirection = 'asc';
+    } else if (sortOrder === 'desc') {
+        orderDirection = 'desc';
+    }
+
     const products = await query
-        .orderBy('products.created_at', 'desc')
+        .orderBy(orderColumn, orderDirection)
         .limit(limitNum)
         .offset(offset)
         .execute();
@@ -52,7 +80,19 @@ export const getAllProducts = async (req: Request, res: Response) => {
     }
 
     if (category && typeof category === 'string') {
-        countQuery = countQuery.where('categories.slug', '=', category);
+        countQuery = countQuery.where('categories.slug', 'ilike', `%${category}%`);
+    }
+
+    if (minPrice && typeof minPrice === 'string') {
+        countQuery = countQuery.where('products.price', '>=', parseFloat(minPrice));
+    }
+
+    if (maxPrice && typeof maxPrice === 'string') {
+        countQuery = countQuery.where('products.price', '<=', parseFloat(maxPrice));
+    }
+
+    if (minDiscount && typeof minDiscount === 'string') {
+        countQuery = countQuery.where(sql<number>`((products.mrp - products.price) * 100.0 / products.mrp)`, '>=', parseFloat(minDiscount));
     }
 
     const { total } = await countQuery
