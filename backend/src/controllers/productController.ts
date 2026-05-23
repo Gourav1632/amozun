@@ -1,9 +1,24 @@
 import type { Request, Response } from "express";
 import { sql } from "kysely";
+import crypto from "crypto";
 import { db } from "../db/index.js";
 import { AppError } from "../utils/AppError.js";
+import { redisClient } from "../db/redis.js";
+import { logger } from "../utils/logger.js";
 
 export const getAllProducts = async (req: Request, res: Response) => {
+    try {
+        const queryHash = crypto.createHash('sha256').update(JSON.stringify(req.query)).digest('hex');
+        const cacheKey = `products:search:${queryHash}`;
+        
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
+    } catch (err) {
+        logger.error('Redis cache error: ', err);
+    }
+
     let { search, category, page = "1", limit = "12", minPrice, maxPrice, minDiscount, sortBy, sortOrder } = req.query;
 
     let finalSearchQuery = typeof search === 'string' ? search : undefined;
@@ -116,7 +131,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
     const { total } = await countQuery
         .executeTakeFirstOrThrow();
 
-    res.json({
+    const responseData = {
         status: 'success',
         data: products,
         pagination: {
@@ -125,8 +140,17 @@ export const getAllProducts = async (req: Request, res: Response) => {
             total: Number(total),
             totalPages: Math.ceil(Number(total) / limitNum),
         }
-    })
+    };
 
+    try {
+        const queryHash = crypto.createHash('sha256').update(JSON.stringify(req.query)).digest('hex');
+        const cacheKey = `products:search:${queryHash}`;
+        await redisClient.setEx(cacheKey, 300, JSON.stringify(responseData)); // 5 minutes
+    } catch (err) {
+        logger.error('Redis cache error: ', err);
+    }
+
+    res.json(responseData);
 }
 
 
@@ -135,6 +159,15 @@ export const getProductById = async (req: Request, res: Response) => {
 
     if (!id || typeof id != 'string') {
         throw new AppError('Product ID is required.', 400);
+    }
+
+    try {
+        const cached = await redisClient.get(`product:${id}`);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
+    } catch (err) {
+        logger.error('Redis cache error: ', err);
     }
 
     const product = await db
@@ -164,10 +197,18 @@ export const getProductById = async (req: Request, res: Response) => {
         .selectAll()
         .orderBy("display_order", "asc")
         .execute();
-    res.json({
+    const responseData = {
         status: "success",
         data: { ...product, images },
-    });
+    };
+
+    try {
+        await redisClient.setEx(`product:${id}`, 3600, JSON.stringify(responseData)); // 1 hour
+    } catch (err) {
+        logger.error('Redis cache error: ', err);
+    }
+
+    res.json(responseData);
 };
 
 export const getSearchSuggestions = async (req: Request, res: Response) => {
@@ -177,6 +218,15 @@ export const getSearchSuggestions = async (req: Request, res: Response) => {
         return;
     }
 
+    try {
+        const cached = await redisClient.get(`suggestions:${q}`);
+        if (cached) {
+            return res.json(JSON.parse(cached));
+        }
+    } catch (err) {
+        logger.error('Redis cache error: ', err);
+    }
+
     const suggestions = await db
         .selectFrom('categories')
         .select('name')
@@ -184,8 +234,16 @@ export const getSearchSuggestions = async (req: Request, res: Response) => {
         .limit(8)
         .execute();
 
-    res.json({
+    const responseData = {
         status: 'success',
         data: suggestions.map(s => s.name)
-    });
+    };
+
+    try {
+        await redisClient.setEx(`suggestions:${q}`, 86400, JSON.stringify(responseData)); // 24 hours
+    } catch (err) {
+        logger.error('Redis cache error: ', err);
+    }
+
+    res.json(responseData);
 };

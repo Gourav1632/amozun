@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import { db } from "../db/index.js";
 import { AppError } from "../utils/AppError.js";
 import { sendOrderConfirmationEmail } from "../services/emailService.js";
+import { redisClient } from "../db/redis.js";
+import { logger } from "../utils/logger.js";
 
 export const placeOrder = async (req: Request, res: Response) => {
     const { shippingAddress, buyNowItem } = req.body;
@@ -132,6 +134,16 @@ export const placeOrder = async (req: Request, res: Response) => {
 
         return newOrder.id;
     });
+
+    // Invalidate product cache for purchased items
+    try {
+        const keysToDelete = cartItems.map(item => `product:${item.product_id}`);
+        if (keysToDelete.length > 0) {
+            await redisClient.del(keysToDelete);
+        }
+    } catch (err) {
+        logger.error('Failed to invalidate product cache after order:', err);
+    }
 
     // 5. Send Email Notification
     const user = await db
