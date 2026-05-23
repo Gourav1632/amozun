@@ -87,7 +87,7 @@ export const sendOrderConfirmationEmail = async (
         `;
 
         await resend.emails.send({
-            from: "Amozun <onboarding@resend.dev>", // using Resend's test domain
+            from: "Amozun <orders@gouravkumar.app>", 
             to: email,
             subject: `Your Amozun.in order #${orderId.substring(0, 8).toUpperCase()}`,
             html: htmlContent,
@@ -110,7 +110,7 @@ export const sendOtpEmail = async (email: string, otp: string) => {
 
     try {
         await resend.emails.send({
-            from: "Amozun Security <onboarding@resend.dev>",
+            from: "Amozun Security <security@gouravkumar.app>",
             to: email,
             subject: `Your Amozun Verification Code: ${otp}`,
             html: `
