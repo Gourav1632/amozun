@@ -65,7 +65,7 @@ export default function CheckoutPage() {
         e.preventDefault();
 
         if (activeItems.length === 0) {
-            alert("Nothing to checkout!");
+            console.error("Nothing to checkout!");
             return;
         }
 
@@ -122,7 +122,7 @@ export default function CheckoutPage() {
                 }
             }
         } catch (error: any) {
-            alert(error.message || "Failed to place order");
+            console.error(error.message || "Failed to place order");
             setIsSubmitting(false);
         }
     };

@@ -9,8 +9,8 @@ import { sendOtpEmail } from "../services/emailService.js";
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    secure: true, // required for sameSite: 'none'
+    sameSite: "none" as const, // allows cross-site cookies from Vercel to EC2
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 

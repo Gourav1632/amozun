@@ -60,7 +60,7 @@ export default function AddressesPage() {
             await apiFetch(`/addresses/${id}/default`, { method: 'PUT' });
             fetchAddresses();
         } catch (error) {
-            alert("Failed to set default address.");
+            console.error("Failed to set default address.");
         }
     };
 
@@ -113,7 +113,7 @@ export default function AddressesPage() {
             setEditingId(null);
             fetchAddresses();
         } catch (error: any) {
-            alert(error.message || "Failed to save address");
+            console.error(error.message || "Failed to save address");
         } finally {
             setIsSubmitting(false);
         }

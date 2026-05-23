@@ -6,24 +6,33 @@ import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { cookies } from "next/headers";
 import HomeProductSwiper from "@/components/Home/HomeProductSwiper";
+import { Metadata } from "next";
+
+export async function generateMetadata(
+    { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+    const { id } = await params;
+    const product = await getProduct(id);
+
+    if (!product) {
+        return {
+            title: 'Product Not Found',
+        };
+    }
+
+    const shortDesc = product.description 
+        ? (product.description.length > 155 ? product.description.substring(0, 155) + '...' : product.description)
+        : `Buy ${product.name} at the best price on Amozun.in.`;
+
+    return {
+        title: product.name,
+        description: shortDesc,
+    };
+}
 
 async function getProduct(id: string) {
     try {
         const res = await apiFetch(`/products/${id}`, { cache: 'no-store' });
-
-        // Log recently viewed product asynchronously
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-        if (token) {
-            apiFetch('/recently-viewed', {
-                method: 'POST',
-                headers: {
-                    Cookie: `token=${token}`
-                },
-                body: JSON.stringify({ productId: id })
-            }).catch(() => { });
-        }
-
         return res.data;
     } catch (error) {
         return null;
@@ -63,6 +72,19 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
 
     if (!product) {
         notFound();
+    }
+
+    // Log recently viewed product asynchronously
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (token) {
+        apiFetch('/recently-viewed', {
+            method: 'POST',
+            headers: {
+                Cookie: `token=${token}`
+            },
+            body: JSON.stringify({ productId: id })
+        }).catch(() => { });
     }
 
     const [similarProducts, recentlyViewed] = await Promise.all([

@@ -8,7 +8,7 @@ import RecentlyViewedSidebar from "@/components/cart/RecentlyViewedSidebar";
 
 export default function WishlistPage() {
     const { items, isLoading } = useWishlist();
-    const { user, isLoading: isAuthLoading } = useAuth();
+    const { user, isLoading: isAuthLoading, requireAuth } = useAuth();
 
     if (isAuthLoading || isLoading) {
         return (
@@ -23,11 +23,9 @@ export default function WishlistPage() {
             <div className="min-h-screen bg-[#eaeded] p-4 flex flex-col items-center pt-10">
                 <div className="bg-white p-8 rounded shadow-sm flex flex-col items-center w-full max-w-lg border">
                     <h2 className="text-2xl font-bold mb-4">Sign in to view your Wish List</h2>
-                    <Link href="/login">
-                        <button className="bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 px-6 shadow-sm">
-                            Sign in to your account
-                        </button>
-                    </Link>
+                    <button onClick={() => requireAuth(() => {})} className="bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 px-6 shadow-sm">
+                        Sign in to your account
+                    </button>
                 </div>
             </div>
         );

@@ -63,7 +63,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             });
             await fetchCart();
         } catch (error: any) {
-            alert(error.message || "Failed to add to cart");
+            console.error(error.message || "Failed to add to cart");
         }
     };
 
@@ -75,7 +75,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             });
             await fetchCart();
         } catch (error: any) {
-            alert(error.message || "Failed to update quantity");
+            console.error(error.message || "Failed to update quantity");
         }
     };
 
@@ -86,7 +86,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             });
             await fetchCart();
         } catch (error: any) {
-             alert(error.message || "Failed to remove item");
+             console.error(error.message || "Failed to remove item");
         }
     };
 

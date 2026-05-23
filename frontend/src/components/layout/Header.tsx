@@ -12,7 +12,7 @@ import SidebarMenu from "./SidebarMenu";
 import AccountMenuMobile from "./AccountMenuMobile";
 
 const Header = ({ title }: any) => {
-    const { user, logout } = useAuth();
+    const { user, isLoading, logout } = useAuth();
     const { totalItems } = useCart();
     const { selectedAddress } = useDelivery();
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -70,7 +70,7 @@ const Header = ({ title }: any) => {
                             <div className="fixed inset-0 bg-black/60 hidden group-hover:block z-[45] pointer-events-none"></div>
 
                             <div className="flex flex-col relative z-[50] bg-[#131A22] rounded-[2px] p-1 -m-1">
-                                <span className="text-xs leading-tight">Hello, {user ? user.name : "sign in"}</span>
+                                <span className="text-xs leading-tight">Hello, {isLoading ? "..." : (user ? user.name : "sign in")}</span>
                                 <span className="text-sm font-bold flex items-center leading-tight">Account & Lists <ChevronDown className="h-3 ml-1 text-gray-400" /></span>
                             </div>
 
@@ -79,7 +79,7 @@ const Header = ({ title }: any) => {
                                 {/* Triangle pointer */}
                                 <div className="absolute -top-2 right-[90px] w-4 h-4 bg-white border-t border-l border-gray-200 transform rotate-45"></div>
 
-                                {!user && (
+                                {!isLoading && !user && (
                                     <div className="flex flex-col items-center border-b border-gray-200 pb-3 mb-3">
                                         <Link href="/login" className="w-48 bg-[#ffd814] border border-[#fcd200] hover:bg-[#f7ca00] text-center rounded-lg py-1.5 text-[13px] font-medium shadow-sm mb-1 text-black">
                                             Sign in
@@ -122,7 +122,7 @@ const Header = ({ title }: any) => {
                                 className="flex md:hidden items-center text-sm font-medium cursor-pointer hover:border-white p-1 border border-transparent rounded-[2px]"
                                 onClick={() => setIsAccountMenuOpen(true)}
                             >
-                                <span>{user ? user.name.split(' ')[0] : 'Sign in'}</span>
+                                <span>{isLoading ? '...' : (user ? user.name.split(' ')[0] : 'Sign in')}</span>
                                 <User className="h-6 ml-1" />
                             </div>
 
@@ -153,7 +153,7 @@ const Header = ({ title }: any) => {
 
                     {[
                         { label: 'Bestsellers', href: '/search?sort=bestsellers' },
-                        { label: 'Today\'s Deals', href: '/deals' },
+                        { label: 'Today\'s Deals', href: '/search?minDiscount=10' },
                         { label: 'Mobiles', href: '/search?category=mobiles' },
                         { label: 'New Releases', href: '/search?sort=new' },
                         { label: 'Electronics', href: '/search?category=electronics' },

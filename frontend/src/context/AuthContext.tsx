@@ -2,6 +2,7 @@
 
 import { createContext, useEffect, useState, ReactNode } from "react"
 import { apiFetch } from "@/lib/api"
+import LoginPromptModal from "@/components/auth/LoginPromptModal";
 
 
 interface User {
@@ -13,6 +14,9 @@ interface User {
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
+    showLoginModal: boolean;
+    setShowLoginModal: (show: boolean) => void;
+    requireAuth: (action: () => void) => void;
     login: (userData: User) => void;
     logout: () => Promise<void>;
 }
@@ -23,6 +27,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -43,6 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
     };
 
+    const requireAuth = (action: () => void) => {
+        if (user) {
+            action();
+        } else {
+            setShowLoginModal(true);
+        }
+    };
+
     const logout = async () => {
         try {
             await apiFetch('/auth/logout', { method: 'POST' });
@@ -53,8 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, showLoginModal, setShowLoginModal, requireAuth, login, logout }}>
             {children}
+            <LoginPromptModal />
         </AuthContext.Provider>
     );
 };

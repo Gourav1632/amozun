@@ -16,7 +16,7 @@ interface BuyBoxProps {
 
 export default function BuyBox({ productId, price, mrp, stock }: BuyBoxProps) {
     const [quantity, setQuantity] = useState(1);
-    const { user } = useAuth();
+    const { user, requireAuth } = useAuth();
     const { addToCart } = useCart();
     const { items: wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
     const router = useRouter();
@@ -26,47 +26,41 @@ export default function BuyBox({ productId, price, mrp, stock }: BuyBoxProps) {
 
     const isWishlisted = wishlistItems.some(item => item.product_id === productId);
 
-    const handleAddToCart = async () => {
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-        setIsAdding(true);
-        await addToCart(productId, quantity);
-        setIsAdding(false);
-        setAddedToCart(true);
-        setTimeout(() => setAddedToCart(false), 2000);
+    const handleAddToCart = () => {
+        requireAuth(async () => {
+            setIsAdding(true);
+            await addToCart(productId, quantity);
+            setIsAdding(false);
+            setAddedToCart(true);
+            setTimeout(() => setAddedToCart(false), 2000);
+        });
     };
 
     const handleBuyNow = () => {
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-        // Redirect to checkout with this product
-        router.push(`/checkout?product=${productId}&quantity=${quantity}`);
+        requireAuth(() => {
+            // Redirect to checkout with this product
+            router.push(`/checkout?product=${productId}&quantity=${quantity}`);
+        });
     };
 
-    const handleWishlistToggle = async () => {
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-        setIsAddingWishlist(true);
-        try {
-            if (isWishlisted) {
-                const wishlistItem = wishlistItems.find(item => item.product_id === productId);
-                if (wishlistItem) {
-                    await removeFromWishlist(wishlistItem.wishlist_item_id);
+    const handleWishlistToggle = () => {
+        requireAuth(async () => {
+            setIsAddingWishlist(true);
+            try {
+                if (isWishlisted) {
+                    const wishlistItem = wishlistItems.find(item => item.product_id === productId);
+                    if (wishlistItem) {
+                        await removeFromWishlist(wishlistItem.wishlist_item_id);
+                    }
+                } else {
+                    await addToWishlist(productId);
                 }
-            } else {
-                await addToWishlist(productId);
+            } catch (e) {
+                // Error handling could go here
+            } finally {
+                setIsAddingWishlist(false);
             }
-        } catch (e) {
-            // Error handling could go here
-        } finally {
-            setIsAddingWishlist(false);
-        }
+        });
     };
 
     const discountPercentage = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;

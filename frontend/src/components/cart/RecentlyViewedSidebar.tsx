@@ -12,7 +12,7 @@ export default function RecentlyViewedSidebar() {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { addToCart } = useCart();
-    const { user } = useAuth();
+    const { user, requireAuth } = useAuth();
 
     useEffect(() => {
         const fetchRecentlyViewed = async () => {
@@ -38,18 +38,16 @@ export default function RecentlyViewedSidebar() {
     const [addedStates, setAddedStates] = useState<Record<string, boolean>>({});
     const [addingStates, setAddingStates] = useState<Record<string, boolean>>({});
 
-    const handleAddToCart = async (productId: string) => {
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-        setAddingStates(prev => ({ ...prev, [productId]: true }));
-        await addToCart(productId, 1);
-        setAddingStates(prev => ({ ...prev, [productId]: false }));
-        setAddedStates(prev => ({ ...prev, [productId]: true }));
-        setTimeout(() => {
-            setAddedStates(prev => ({ ...prev, [productId]: false }));
-        }, 2000);
+    const handleAddToCart = (productId: string) => {
+        requireAuth(async () => {
+            setAddingStates(prev => ({ ...prev, [productId]: true }));
+            await addToCart(productId, 1);
+            setAddingStates(prev => ({ ...prev, [productId]: false }));
+            setAddedStates(prev => ({ ...prev, [productId]: true }));
+            setTimeout(() => {
+                setAddedStates(prev => ({ ...prev, [productId]: false }));
+            }, 2000);
+        });
     };
 
     if (loading) {

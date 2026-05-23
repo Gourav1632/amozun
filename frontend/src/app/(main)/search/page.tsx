@@ -6,11 +6,19 @@ import SearchProductList from "@/components/Search/SearchProductList";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Generate metadata dynamically if needed
-export const metadata = {
-    title: 'Amozun Search',
-    description: 'Search for products on Amozun',
-};
+import { Metadata } from "next";
+
+export async function generateMetadata(
+    { searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }
+): Promise<Metadata> {
+    const resolvedParams = await searchParams;
+    const query = resolvedParams.search as string;
+    
+    return {
+        title: query ? `Amozun.in : ${query}` : 'Amozun.in: Search Results',
+        description: `Search results for ${query || 'products'} on Amozun.in`,
+    };
+}
 
 async function getSearchResults(searchParams: any) {
     try {

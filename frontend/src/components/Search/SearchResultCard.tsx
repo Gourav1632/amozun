@@ -18,25 +18,22 @@ export interface Product {
 
 export default function SearchResultCard({ product }: { product: Product }) {
     const { addToCart } = useCart();
-    const { user } = useAuth();
+    const { user, requireAuth } = useAuth();
     const router = useRouter();
     const [isAdding, setIsAdding] = useState(false);
     const [addedToCart, setAddedToCart] = useState(false);
 
-    const handleAddToCart = async (e: React.MouseEvent) => {
+    const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-
-        setIsAdding(true);
-        await addToCart(product.id, 1);
-        setIsAdding(false);
-        setAddedToCart(true);
-        setTimeout(() => setAddedToCart(false), 2000);
+        requireAuth(async () => {
+            setIsAdding(true);
+            await addToCart(product.id, 1);
+            setIsAdding(false);
+            setAddedToCart(true);
+            setTimeout(() => setAddedToCart(false), 2000);
+        });
     };
 
     const discount = product.mrp > product.price 

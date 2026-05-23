@@ -11,7 +11,7 @@ import RecentlyViewedSidebar from "@/components/cart/RecentlyViewedSidebar";
 
 export default function CartPage() {
     const { items, isLoading } = useCart();
-    const { user, isLoading: isAuthLoading } = useAuth();
+    const { user, isLoading: isAuthLoading, requireAuth } = useAuth();
     const router = useRouter();
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -25,11 +25,9 @@ export default function CartPage() {
     const shippingFee = 0;
 
     const handleCheckout = () => {
-        if (!user) {
-            router.push('/login');
-        } else {
+        requireAuth(() => {
             router.push('/checkout');
-        }
+        });
     };
 
     if (isAuthLoading || isLoading) {
@@ -45,11 +43,9 @@ export default function CartPage() {
             <div className="min-h-screen bg-[#eaeded] p-4 flex flex-col items-center pt-10">
                 <div className="bg-white p-8 rounded shadow-sm flex flex-col items-center w-full max-w-lg border">
                     <h2 className="text-2xl font-bold mb-4 text-[#0f1111]">Your Amozun Cart is empty</h2>
-                    <Link href="/login">
-                        <button className="bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 px-6 shadow-sm">
-                            Sign in to your account
-                        </button>
-                    </Link>
+                    <button onClick={() => requireAuth(() => {})} className="bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 px-6 shadow-sm">
+                        Sign in to your account
+                    </button>
                 </div>
             </div>
         );
