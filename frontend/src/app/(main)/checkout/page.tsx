@@ -97,7 +97,7 @@ export default function CheckoutPage() {
                 }
             }
 
-            const bodyPayload: any = { 
+            const bodyPayload: any = {
                 shippingAddress: finalAddress,
                 paymentMethod
             };
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
                 if (!isBuyNow) {
                     await fetchCart(); // Refresh cart to empty it locally
                 }
-                
+
                 if (res.data.url) {
                     window.location.href = res.data.url;
                 } else {
@@ -254,14 +254,14 @@ export default function CheckoutPage() {
                         {/* 2. Payment method */}
                         <div>
                             <h2 className="text-xl font-bold mb-4">2. Payment method</h2>
-                            
+
                             <label className={`flex items-start gap-3 p-3 border rounded cursor-pointer mb-3 ${paymentMethod === "COD" ? 'border-[#e77600] bg-[#fcf5ee]' : 'border-gray-200 hover:bg-gray-50'}`}>
-                                <input 
-                                    type="radio" 
-                                    name="payment" 
-                                    checked={paymentMethod === 'COD'} 
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    checked={paymentMethod === 'COD'}
                                     onChange={() => setPaymentMethod('COD')}
-                                    className="mt-1 h-4 w-4 text-[#e77600] focus:ring-[#e77600]" 
+                                    className="mt-1 h-4 w-4 text-[#e77600] focus:ring-[#e77600]"
                                 />
                                 <div>
                                     <div className="text-sm font-medium">Cash on Delivery (COD) / Pay on Delivery</div>
@@ -270,16 +270,16 @@ export default function CheckoutPage() {
                             </label>
 
                             <label className={`flex items-start gap-3 p-3 border rounded cursor-pointer ${paymentMethod === "CARD" ? 'border-[#e77600] bg-[#fcf5ee]' : 'border-gray-200 hover:bg-gray-50'}`}>
-                                <input 
-                                    type="radio" 
-                                    name="payment" 
-                                    checked={paymentMethod === 'CARD'} 
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    checked={paymentMethod === 'CARD'}
                                     onChange={() => setPaymentMethod('CARD')}
-                                    className="mt-1 h-4 w-4 text-[#e77600] focus:ring-[#e77600]" 
+                                    className="mt-1 h-4 w-4 text-[#e77600] focus:ring-[#e77600]"
                                 />
                                 <div>
-                                    <div className="text-sm font-medium">Credit or Debit Card (Stripe)</div>
-                                    <p className="text-xs text-gray-500 mt-1">Pay securely via Stripe Hosted Checkout.</p>
+                                    <div className="text-sm font-medium">Credit or Debit Card</div>
+                                    <p className="text-xs text-gray-500 mt-1">Pay securely via Credit or Debit Card.</p>
                                 </div>
                             </label>
                         </div>
