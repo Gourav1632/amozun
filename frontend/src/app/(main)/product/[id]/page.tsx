@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { cookies } from "next/headers";
 import HomeProductSwiper from "@/components/Home/HomeProductSwiper";
+import RecentlyViewedTracker from "@/components/product/RecentlyViewedTracker";
 import { Metadata } from "next";
 
 export async function generateMetadata(
@@ -74,19 +75,6 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
         notFound();
     }
 
-    // Log recently viewed product asynchronously
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-    if (token) {
-        apiFetch('/recently-viewed', {
-            method: 'POST',
-            headers: {
-                Cookie: `token=${token}`
-            },
-            body: JSON.stringify({ productId: id })
-        }).catch(() => { });
-    }
-
     const [similarProducts, recentlyViewed] = await Promise.all([
         getSimilarProducts(product.category_slug, product.id),
         getRecentlyViewedProducts()
@@ -121,6 +109,8 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
 
     return (
         <main className="bg-white min-h-screen text-[#0F1111]">
+            <RecentlyViewedTracker productId={product.id} />
+            
             {/* Breadcrumbs */}
             <div className="flex items-center text-xs text-gray-500 py-2 px-4 border-b border-gray-200 gap-1 overflow-x-auto whitespace-nowrap">
                 <Link href="/" className="hover:underline">Home</Link>

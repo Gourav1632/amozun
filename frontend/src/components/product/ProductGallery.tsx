@@ -24,17 +24,18 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
             {/* Thumbnails (Left side on desktop, bottom/hidden on mobile) */}
             <div className="hidden md:flex flex-col gap-2 w-[50px] shrink-0">
                 {images.map((img, index) => (
-                    <div 
+                    <div
                         key={img.id || index}
                         className={`border-2 rounded-sm overflow-hidden cursor-pointer h-[50px] w-[50px] flex items-center justify-center p-1 ${mainImage === img.url ? 'border-[#007185] shadow-[0_0_3px_#007185]' : 'border-gray-200 hover:border-[#007185]'}`}
                         onMouseEnter={() => setMainImage(img.url)}
                         onClick={() => setMainImage(img.url)}
                     >
                         <div className="relative w-full h-full">
-                            <Image 
-                                src={img.url} 
+                            <Image
+                                src={img.url}
                                 alt={`${productName} thumbnail ${index + 1}`}
                                 fill
+                                sizes="50px"
                                 className="object-contain"
                             />
                         </div>
@@ -45,10 +46,11 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
             {/* Main Image */}
             <div className="flex-grow relative h-[300px] sm:h-[400px] md:h-[500px] w-full flex items-center justify-center">
                 {mainImage ? (
-                    <Image 
-                        src={mainImage} 
+                    <Image
+                        src={mainImage}
                         alt={productName}
                         fill
+                        sizes="(max-width: 768px) 100vw, 500px"
                         className="object-contain"
                         priority
                     />
@@ -61,17 +63,18 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
 
             {/* Mobile Thumbnails */}
             <div className="flex md:hidden gap-2 w-full overflow-x-auto pb-2">
-                 {images.map((img, index) => (
-                    <div 
+                {images.map((img, index) => (
+                    <div
                         key={img.id || index}
                         className={`border-2 rounded-sm overflow-hidden cursor-pointer h-[50px] min-w-[50px] flex items-center justify-center p-1 ${mainImage === img.url ? 'border-[#007185] shadow-[0_0_3px_#007185]' : 'border-gray-200'}`}
                         onClick={() => setMainImage(img.url)}
                     >
                         <div className="relative w-full h-full">
-                            <Image 
-                                src={img.url} 
+                            <Image
+                                src={img.url}
                                 alt={`${productName} thumbnail ${index + 1}`}
                                 fill
+                                sizes="50px"
                                 className="object-contain"
                             />
                         </div>

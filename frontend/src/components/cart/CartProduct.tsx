@@ -52,7 +52,7 @@ const CartProduct = ({ item, selectedIds, setSelectedIds }: CartProductProps) =>
     };
 
     return (
-        <div className="flex flex-col sm:flex-row py-4 border-b border-[#dddddd] last:border-none w-full">
+        <div className="flex flex-row py-4 border-b border-[#dddddd] last:border-none w-full">
             {/* Left Column: Checkbox & Image */}
             <div className="flex flex-shrink-0">
                 <div className="mr-2 mt-1 flex-shrink-0 w-[20px]">
@@ -63,7 +63,7 @@ const CartProduct = ({ item, selectedIds, setSelectedIds }: CartProductProps) =>
                         checked={active}
                     />
                 </div>
-                <div className="relative w-[180px] h-[180px] flex-shrink-0 ml-1">
+                <div className="relative w-[100px] h-[100px] sm:w-[180px] sm:h-[180px] flex-shrink-0 ml-1">
                     <Image
                         src={item.image_url || "/placeholder.png"}
                         fill
@@ -75,7 +75,7 @@ const CartProduct = ({ item, selectedIds, setSelectedIds }: CartProductProps) =>
             </div>
 
             {/* Right Column: Content Group */}
-            <div className="flex flex-col flex-grow sm:pl-4 mt-2 sm:mt-0 max-w-full">
+            <div className="flex flex-col flex-grow pl-3 sm:pl-4 max-w-full overflow-hidden">
 
                 {/* Desktop layout: Price floats right */}
                 <div className="block w-full">

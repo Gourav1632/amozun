@@ -30,7 +30,7 @@ export default async function RecentlyViewedPage() {
                     <h1 className="text-[28px] leading-8 font-medium text-[#0f1111]">
                         Recently Viewed Items
                     </h1>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 text-nowrap">
                         {products.length} {products.length === 1 ? 'item' : 'items'}
                     </span>
                 </div>
@@ -45,14 +45,15 @@ export default async function RecentlyViewedPage() {
                 ) : (
                     <div className="flex flex-col">
                         {products.map((product) => (
-                            <div key={product.id} className="mt-4 grid grid-cols-1 md:grid-cols-6 border-b pb-6 last:border-none gap-4 md:gap-0">
+                            <div key={product.id} className="mt-4 flex flex-row pb-6 last:border-none gap-4">
                                 {/* Image Section */}
-                                <div className="flex justify-center md:justify-start md:col-span-1">
+                                <div className="flex-shrink-0">
                                     <Link href={`/product/${product.id}`}>
-                                        <div className="relative w-[150px] h-[150px] md:w-[120px] md:h-[120px]">
+                                        <div className="relative w-[100px] h-[100px] md:w-[120px] md:h-[120px]">
                                             <Image
                                                 src={product.image_url || "/placeholder.png"}
                                                 fill
+                                                sizes="(max-width: 768px) 100px, 120px"
                                                 className="object-contain rounded-md"
                                                 alt={product.name}
                                             />
@@ -61,7 +62,7 @@ export default async function RecentlyViewedPage() {
                                 </div>
 
                                 {/* Info Section */}
-                                <div className="col-span-1 md:col-span-5 md:ml-4 flex flex-col justify-start">
+                                <div className="flex flex-col flex-grow justify-start overflow-hidden">
                                     <Link href={`/product/${product.id}`} className="text-lg font-medium text-[#007185] hover:text-[#c45500] hover:underline line-clamp-2 mb-1">
                                         {product.name}
                                     </Link>

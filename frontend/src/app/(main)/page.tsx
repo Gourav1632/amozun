@@ -2,6 +2,7 @@ import HeroSlider from "@/components/Home/HeroSlider";
 import HomeProductRow from "@/components/Home/HomeProductRow";
 import { apiFetch } from "@/lib/api";
 import Image from "next/image";
+import Link from "next/link";
 import AuthBox from "@/components/Home/AuthBox";
 import { cookies } from "next/headers";
 
@@ -56,17 +57,17 @@ export default async function Home() {
                         <h2 className="text-xl font-bold mb-4">Up to 60% off | Styles of your choice</h2>
                         <div className="grid grid-cols-2 gap-4 flex-grow mb-4">
                             {fashionTop.map((f: any, i: number) => (
-                                <div key={f.id || i} className="bg-[#f8f8f8] h-full w-full relative rounded-sm flex items-center justify-center p-2">
+                                <Link key={f.id || i} href={`/product/${f.id}`} className="bg-[#f8f8f8] h-full w-full relative rounded-sm flex items-center justify-center p-2 group overflow-hidden">
                                     {f.image_url ? (
-                                        <Image src={f.image_url} alt={f.name || ""} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain mix-blend-multiply p-2 hover:scale-105 transition-transform" />
+                                        <Image src={f.image_url} alt={f.name || ""} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain mix-blend-multiply p-2 group-hover:scale-105 transition-transform" />
                                     ) : null}
-                                </div>
+                                </Link>
                             ))}
                             {Array.from({ length: Math.max(0, 4 - fashionTop.length) }).map((_, i) => (
                                 <div key={`empty-${i}`} className="bg-[#f8f8f8] h-full w-full rounded-sm"></div>
                             ))}
                         </div>
-                        <a href="#" className="text-sm text-[#007185] hover:text-[#c45500] hover:underline">End of season sale</a>
+                        <Link href="/search?category=clothing" className="text-sm text-[#007185] hover:text-[#c45500] hover:underline">End of season sale</Link>
                     </div>
 
                     {/* Home Revamp 4-grid */}
@@ -74,28 +75,28 @@ export default async function Home() {
                         <h2 className="text-xl font-bold mb-4">Revamp your home in style</h2>
                         <div className="grid grid-cols-2 gap-4 flex-grow mb-4">
                             {homeTop.map((h: any, i: number) => (
-                                <div key={h.id || i} className="bg-[#f8f8f8] h-full w-full relative rounded-sm flex items-center justify-center p-2">
+                                <Link key={h.id || i} href={`/product/${h.id}`} className="bg-[#f8f8f8] h-full w-full relative rounded-sm flex items-center justify-center p-2 group overflow-hidden">
                                     {h.image_url ? (
-                                        <Image src={h.image_url} alt={h.name || ""} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain mix-blend-multiply p-2 hover:scale-105 transition-transform" />
+                                        <Image src={h.image_url} alt={h.name || ""} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain mix-blend-multiply p-2 group-hover:scale-105 transition-transform" />
                                     ) : null}
-                                </div>
+                                </Link>
                             ))}
                             {Array.from({ length: Math.max(0, 4 - homeTop.length) }).map((_, i) => (
                                 <div key={`empty-home-${i}`} className="bg-[#f8f8f8] h-full w-full rounded-sm"></div>
                             ))}
                         </div>
-                        <a href="#" className="text-sm text-[#007185] hover:text-[#c45500] hover:underline">Explore all</a>
+                        <Link href="/search?category=home" className="text-sm text-[#007185] hover:text-[#c45500] hover:underline">Explore all</Link>
                     </div>
 
                     {/* Headphones Single Hero */}
                     <div className="bg-white p-4 z-20 flex flex-col h-[420px]">
                         <h2 className="text-xl font-bold mb-4">Starting ₹149 | Headphones</h2>
-                        <div className="bg-[#f8f8f8] h-full w-full mb-4 flex-grow relative rounded-sm overflow-hidden p-4">
+                        <Link href={headphoneTop[0]?.id ? `/product/${headphoneTop[0].id}` : "/search?category=headphones"} className="bg-[#f8f8f8] h-full w-full mb-4 flex-grow relative rounded-sm overflow-hidden p-4 group">
                             {headphoneTop[0]?.image_url ? (
-                                <Image src={headphoneTop[0].image_url} alt={headphoneTop[0].name || ""} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-contain mix-blend-multiply p-4 hover:scale-105 transition-transform" />
+                                <Image src={headphoneTop[0].image_url} alt={headphoneTop[0].name || ""} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-contain mix-blend-multiply p-4 group-hover:scale-105 transition-transform" />
                             ) : null}
-                        </div>
-                        <a href="#" className="text-sm text-[#007185] hover:text-[#c45500] hover:underline">See all offers</a>
+                        </Link>
+                        <Link href="/search?category=headphones" className="text-sm text-[#007185] hover:text-[#c45500] hover:underline">See all offers</Link>
                     </div>
 
                     <AuthBox />

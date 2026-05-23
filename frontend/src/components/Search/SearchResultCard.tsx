@@ -41,7 +41,10 @@ export default function SearchResultCard({ product }: { product: Product }) {
         : 0;
 
     return (
-        <div className="flex flex-col bg-white border border-gray-200 rounded-sm overflow-hidden hover:shadow-sm transition-shadow h-full">
+        <div 
+            onClick={() => router.push(`/product/${product.id}`)}
+            className="flex flex-col sm:flex-row bg-white border border-gray-200 rounded-sm overflow-hidden hover:shadow-md transition-shadow h-full cursor-pointer group"
+        >
             {/* Image Container */}
             <div className="w-full bg-[#f8f8f8] flex-shrink-0 flex items-center justify-center p-2 sm:p-4 relative h-[150px] sm:h-[250px]">
                 {product.image_url ? (
@@ -59,7 +62,7 @@ export default function SearchResultCard({ product }: { product: Product }) {
 
             {/* Details Container */}
             <div className="p-4 flex flex-col flex-grow">
-                <Link href={`/product/${product.id}`} className="group">
+                <Link href={`/product/${product.id}`} onClick={(e) => e.stopPropagation()}>
                     <h2 className="text-[#0F1111] text-[16px] font-medium group-hover:text-[#c45500] line-clamp-3 mb-1">
                         {product.name}
                     </h2>

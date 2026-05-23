@@ -33,7 +33,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         requireAuth(async () => {
             setIsAdding(true);
             await addToCart(product.id, 1);
@@ -44,8 +44,11 @@ export default function ProductCard({ product }: ProductCardProps) {
     };
 
     return (
-        <div className="flex flex-col bg-white w-full rounded-md p-3 relative h-full">
-            <Link href={`/product/${product.id}`} className="group flex-grow">
+        <div
+            onClick={() => router.push(`/product/${product.id}`)}
+            className="flex flex-col bg-white w-full rounded-md p-3 relative h-full cursor-pointer group hover:shadow-md transition-shadow"
+        >
+            <div className="flex-grow">
                 {/* Product Image */}
                 <div className="relative w-full aspect-square bg-[#f8f8f8] mb-3 overflow-hidden rounded-md flex items-center justify-center p-2">
                     {product.image_url ? (
@@ -72,10 +75,12 @@ export default function ProductCard({ product }: ProductCardProps) {
                 )}
 
                 {/* Product Name */}
-                <h3 className="text-[#0F1111] text-sm font-medium line-clamp-2 mb-1 group-hover:text-[#c45500]">
-                    {product.name}
-                </h3>
-            </Link>
+                <Link href={`/product/${product.id}`} onClick={(e) => e.stopPropagation()}>
+                    <h3 className="text-[#0F1111] text-sm font-medium line-clamp-2 mb-1 group-hover:text-[#c45500]">
+                        {product.name}
+                    </h3>
+                </Link>
+            </div>
 
             {/* Price Section */}
             <div className="mt-auto pt-2">
@@ -90,14 +95,14 @@ export default function ProductCard({ product }: ProductCardProps) {
                         M.R.P: <span className="line-through">₹{product.mrp?.toLocaleString('en-IN')}</span>
                     </div>
                 )}
-                
+
                 {/* Add to Cart button */}
-                <button 
+                <button
                     onClick={handleAddToCart}
                     disabled={isAdding || addedToCart}
                     className={`w-full mt-3 border rounded-full py-[6px] px-3 text-[13px] text-[#0F1111] shadow-sm transition-all duration-300 flex items-center justify-center disabled:opacity-80
-                        ${addedToCart 
-                            ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]" 
+                        ${addedToCart
+                            ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]"
                             : "bg-[#ffd814] hover:bg-[#f7ca00] border-[#fcd200]"
                         }`}
                 >

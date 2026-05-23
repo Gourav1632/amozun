@@ -147,12 +147,13 @@ export default function OrderDetailsPage() {
                         
                         <div className="flex flex-col">
                             {order.items.map((item: any, index: number) => (
-                                <div key={item.id} className={`py-4 flex flex-col sm:flex-row gap-4 ${index !== order.items.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                                <div key={item.id} className={`py-4 flex flex-row gap-4 ${index !== order.items.length - 1 ? 'border-b border-gray-200' : ''}`}>
                                     <div className="flex-shrink-0 w-24 h-24 relative bg-gray-50 border border-gray-200 cursor-pointer" onClick={() => router.push(`/product/${item.product_id}`)}>
                                         <Image 
                                             src={item.image_url || "/placeholder.jpg"} 
                                             alt={item.product_name_snapshot} 
                                             fill 
+                                            sizes="96px"
                                             className="object-contain p-2"
                                         />
                                     </div>

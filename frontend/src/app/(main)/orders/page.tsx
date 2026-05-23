@@ -94,6 +94,7 @@ export default function OrderHistoryPage() {
                                                                 src={item.image_url || "/placeholder.jpg"} 
                                                                 alt={item.product_name_snapshot} 
                                                                 fill 
+                                                                sizes="80px"
                                                                 className="object-contain p-1"
                                                             />
                                                         </div>

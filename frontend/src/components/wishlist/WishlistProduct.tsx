@@ -31,14 +31,15 @@ const WishlistProduct = ({ item }: WishlistProductProps) => {
     });
 
     return (
-        <div className="mt-2 grid grid-cols-1 md:grid-cols-6 border-b p-2 pb-4 last:border-none gap-4 md:gap-0">
+        <div className="mt-2 flex flex-row border-b p-2 pb-4 last:border-none gap-4">
             {/* Image Section */}
-            <div className="flex justify-center md:justify-start md:col-span-1">
+            <div className="flex-shrink-0">
                 <Link href={`/product/${item.product_id}`}>
-                    <div className="relative w-[120px] h-[120px] md:w-[100px] md:h-[100px]">
+                    <div className="relative w-[100px] h-[100px]">
                         <Image
                             src={item.image_url || "/placeholder.png"}
                             fill
+                            sizes="100px"
                             className="object-contain rounded-md outline outline-1 outline-offset-2 outline-slate-300"
                             alt={item.name}
                         />
@@ -46,8 +47,11 @@ const WishlistProduct = ({ item }: WishlistProductProps) => {
                 </Link>
             </div>
 
-            {/* Info Section */}
-            <div className="col-span-1 md:col-span-3 md:ml-2 flex flex-col justify-start">
+            {/* Content Group (Info + Actions) */}
+            <div className="flex flex-col md:flex-row flex-grow gap-2 md:gap-4 overflow-hidden">
+                
+                {/* Info Section */}
+                <div className="flex flex-col flex-grow justify-start">
                 <Link href={`/product/${item.product_id}`} className="text-base font-medium text-[#007185] hover:text-[#c45500] hover:underline line-clamp-2 mb-1">
                     {item.name}
                 </Link>
@@ -68,21 +72,22 @@ const WishlistProduct = ({ item }: WishlistProductProps) => {
             </div>
 
             {/* Action Buttons Section */}
-            <div className="col-span-1 md:col-span-2 flex flex-col items-end justify-start gap-2 pt-2 pr-2">
+            <div className="flex flex-row md:flex-col items-center md:items-end justify-start gap-2 flex-shrink-0 mt-2 md:mt-0 w-full md:w-auto">
                 <button
                     onClick={handleAddToCart}
                     disabled={isAdding || item.stock === 0}
-                    className="w-full sm:w-[150px] bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-full py-1.5 text-sm font-medium shadow-sm transition-colors flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex-1 md:flex-none w-full md:w-[150px] bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-full py-1.5 px-2 text-xs sm:text-sm font-medium shadow-sm transition-colors flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {isAdding ? "Adding..." : "Add to Cart"}
                 </button>
 
                 <button
                     onClick={handleRemove}
-                    className="w-full sm:w-[150px] bg-white border border-[#d5d9d9] hover:bg-[#f7fafa] rounded-full py-1.5 text-sm text-[#0f1111] font-medium shadow-sm transition-colors flex items-center justify-center"
+                    className="flex-1 md:flex-none w-full md:w-[150px] bg-white border border-[#d5d9d9] hover:bg-[#f7fafa] rounded-full py-1.5 px-2 text-xs sm:text-sm text-[#0f1111] font-medium shadow-sm transition-colors flex items-center justify-center"
                 >
                     Remove
                 </button>
+            </div>
             </div>
         </div>
     );

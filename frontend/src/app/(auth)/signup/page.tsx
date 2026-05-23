@@ -60,8 +60,7 @@ export default function SignupPage() {
                 body: JSON.stringify({ name, email, password, otp })
             });
 
-            login(res.data);
-            router.push('/');
+            router.push('/login');
         } catch (err: any) {
             setError(err.message || 'Something went wrong');
         } finally {

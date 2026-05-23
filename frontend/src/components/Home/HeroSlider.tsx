@@ -51,6 +51,7 @@ export default function HeroSlider() {
                                 src={img}
                                 alt={`Hero Banner ${idx + 1}`}
                                 fill
+                                sizes="100vw"
                                 className="object-cover object-top"
                                 priority={idx === 0}
                             />
