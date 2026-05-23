@@ -13,11 +13,28 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<{ email?: string, password?: string }>({});
     const { login } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        let isValid = true;
+        let errors: any = {};
+
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+            errors.email = "Enter a valid email address";
+            isValid = false;
+        }
+        if (!password) {
+            errors.password = "Enter your password";
+            isValid = false;
+        }
+
+        setFieldErrors(errors);
+        if (!isValid) return;
+
         setError("");
         setIsLoading(true);
 
@@ -69,11 +86,15 @@ export default function LoginPage() {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
-                                       focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                            className={`w-full border ${fieldErrors.email ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-[#a6a6a6] focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]'} rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] focus:outline-none`}
                             required
                             autoFocus
                         />
+                        {fieldErrors.email && (
+                            <p className="text-[#c40000] text-[12px] mt-1 flex items-start gap-1">
+                                <span className="text-[14px]">!</span> {fieldErrors.email}
+                            </p>
+                        )}
                     </div>
 
                     <div className="mb-4">
@@ -91,8 +112,7 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="At least 6 characters"
-                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] pr-10
-                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                className={`w-full border ${fieldErrors.password ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-[#a6a6a6] focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]'} rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] pr-10 focus:outline-none`}
                                 required
                             />
                             <button
@@ -103,6 +123,11 @@ export default function LoginPage() {
                                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                         </div>
+                        {fieldErrors.password && (
+                            <p className="text-[#c40000] text-[12px] mt-1 flex items-start gap-1">
+                                <span className="text-[14px]">!</span> {fieldErrors.password}
+                            </p>
+                        )}
                     </div>
 
                     <button

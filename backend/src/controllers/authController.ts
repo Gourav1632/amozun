@@ -24,6 +24,7 @@ export const sendSigupOTP = async (
     const { email } = req.body;
 
     if (!email) throw new AppError("Email is required.", 400);
+    if (!/^\S+@\S+\.\S+$/.test(email)) throw new AppError("Invalid email format.", 400);
 
     const existing = await db
         .selectFrom("users")
@@ -50,8 +51,17 @@ export const sendSigupOTP = async (
 export const signup = async (req: Request, res: Response) => {
     const { name, email, password, otp } = req.body;
 
-    if (!name || !email || !password || !otp) {
-        throw new AppError("Name, email, password and OTP are required.", 400);
+    if (!name || name.trim().length < 2) {
+        throw new AppError("Name must be at least 2 characters.", 400);
+    }
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        throw new AppError("Invalid email format.", 400);
+    }
+    if (!password || password.length < 6 || !/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
+        throw new AppError("Password must be at least 6 characters and contain both letters and numbers.", 400);
+    }
+    if (!otp || !/^\d{6}$/.test(otp)) {
+        throw new AppError("OTP must be exactly 6 digits.", 400);
     }
 
     // verify otp from redis
@@ -89,8 +99,11 @@ export const signup = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-        throw new AppError("Email and password are required.", 400);
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        throw new AppError("Invalid email format.", 400);
+    }
+    if (!password) {
+        throw new AppError("Password is required.", 400);
     }
 
     const user = await db

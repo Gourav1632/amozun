@@ -19,10 +19,16 @@ export default function SignupPage() {
     const [showPassword, setShowPassword] = useState(false);
     
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<{ email?: string, otp?: string, name?: string, password?: string }>({});
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+            setFieldErrors(prev => ({ ...prev, email: "Enter a valid email address" }));
+            return;
+        }
+        setFieldErrors(prev => ({ ...prev, email: undefined }));
         setError("");
         setIsLoading(true);
 
@@ -41,16 +47,33 @@ export default function SignupPage() {
 
     const handleVerifyOtp = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!otp || otp.length < 6) {
-            setError("Please enter a valid OTP");
+        if (!otp || !/^\d{6}$/.test(otp)) {
+            setFieldErrors(prev => ({ ...prev, otp: "Please enter a valid 6-digit OTP" }));
             return;
         }
+        setFieldErrors(prev => ({ ...prev, otp: undefined }));
         setError("");
         setStep(3);
     };
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        let isValid = true;
+        let errors: any = {};
+        
+        if (!name || name.trim().length < 2) {
+            errors.name = "Enter your first and last name";
+            isValid = false;
+        }
+        if (!password || password.length < 6 || !/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
+            errors.password = "Passwords must be at least 6 characters and contain letters and numbers";
+            isValid = false;
+        }
+        
+        setFieldErrors(prev => ({ ...prev, name: errors.name, password: errors.password }));
+        if (!isValid) return;
+
         setError("");
         setIsLoading(true);
 
@@ -103,11 +126,15 @@ export default function SignupPage() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
-                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                className={`w-full border ${fieldErrors.email ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-[#a6a6a6] focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]'} rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] focus:outline-none`}
                                 required
                                 autoFocus
                             />
+                            {fieldErrors.email && (
+                                <p className="text-[#c40000] text-[12px] mt-1 flex items-start gap-1">
+                                    <span className="text-[14px]">!</span> {fieldErrors.email}
+                                </p>
+                            )}
                         </div>
 
                         <button
@@ -134,11 +161,15 @@ export default function SignupPage() {
                                 type="text"
                                 value={otp}
                                 onChange={(e) => setOtp(e.target.value)}
-                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
-                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)] tracking-widest text-center"
+                                className={`w-full border ${fieldErrors.otp ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-[#a6a6a6] focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]'} rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] focus:outline-none tracking-widest text-center`}
                                 required
                                 autoFocus
                             />
+                            {fieldErrors.otp && (
+                                <p className="text-[#c40000] text-[12px] mt-1 flex items-start gap-1">
+                                    <span className="text-[14px]">!</span> {fieldErrors.otp}
+                                </p>
+                            )}
                         </div>
 
                         <button
@@ -162,11 +193,15 @@ export default function SignupPage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="First and last name"
-                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
-                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                className={`w-full border ${fieldErrors.name ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-[#a6a6a6] focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]'} rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] focus:outline-none`}
                                 required
                                 autoFocus
                             />
+                            {fieldErrors.name && (
+                                <p className="text-[#c40000] text-[12px] mt-1 flex items-start gap-1">
+                                    <span className="text-[14px]">!</span> {fieldErrors.name}
+                                </p>
+                            )}
                         </div>
 
                         <div className="mb-4">
@@ -179,8 +214,7 @@ export default function SignupPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="At least 6 characters"
-                                    className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] pr-10
-                                               focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                    className={`w-full border ${fieldErrors.password ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-[#a6a6a6] focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]'} rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] pr-10 focus:outline-none`}
                                     required
                                     minLength={6}
                                 />
@@ -192,9 +226,15 @@ export default function SignupPage() {
                                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
-                            <p className="text-[11px] text-[#0F1111] mt-1 flex items-center gap-1">
-                                <span className="text-blue-600 italic">i</span> Passwords must be at least 6 characters.
-                            </p>
+                            {fieldErrors.password ? (
+                                <p className="text-[#c40000] text-[12px] mt-1 flex items-start gap-1 leading-tight">
+                                    <span className="text-[14px]">!</span> {fieldErrors.password}
+                                </p>
+                            ) : (
+                                <p className="text-[11px] text-[#0F1111] mt-1 flex items-center gap-1">
+                                    <span className="text-blue-600 italic">i</span> Passwords must be at least 6 characters.
+                                </p>
+                            )}
                         </div>
 
                         <button

@@ -2,6 +2,16 @@ import type { Request, Response } from "express";
 import { db } from "../db/index.js";
 import { AppError } from "../utils/AppError.js";
 
+const validateAddress = (data: any) => {
+    const { full_name, address_line1, city, state, zip_code, phone } = data;
+    if (!full_name || full_name.trim().length < 2) throw new AppError("Invalid full name.", 400);
+    if (!phone || !/^\d{10}$/.test(phone)) throw new AppError("Invalid 10-digit mobile number.", 400);
+    if (!address_line1 || address_line1.trim().length < 5) throw new AppError("Invalid address.", 400);
+    if (!city || city.trim().length < 2) throw new AppError("Invalid city.", 400);
+    if (!state || state.trim().length < 2) throw new AppError("Invalid state.", 400);
+    if (!zip_code || !/^\d{6}$/.test(zip_code)) throw new AppError("Invalid 6-digit Pincode.", 400);
+};
+
 export const getAddresses = async (req: Request, res: Response) => {
     const userId = req.userId!;
 
@@ -19,9 +29,7 @@ export const addAddress = async (req: Request, res: Response) => {
     const userId = req.userId!;
     const { full_name, address_line1, address_line2, city, state, zip_code, phone, is_default } = req.body;
 
-    if (!full_name || !address_line1 || !city || !state || !zip_code || !phone) {
-        throw new AppError("Missing required address fields.", 400);
-    }
+    validateAddress(req.body);
 
     const newAddressId = await db.transaction().execute(async (trx) => {
         // If this is the first address or marked as default, unset others
@@ -85,9 +93,7 @@ export const updateAddress = async (req: Request, res: Response) => {
         throw new AppError("Address ID is required.", 400);
     }
 
-    if (!full_name || !address_line1 || !city || !state || !zip_code || !phone) {
-        throw new AppError("Missing required address fields.", 400);
-    }
+    validateAddress(req.body);
 
     await db.transaction().execute(async (trx) => {
         // If marked as default, unset others

@@ -14,6 +14,14 @@ export default function AddressesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<{
+        full_name?: string;
+        phone?: string;
+        address_line1?: string;
+        city?: string;
+        state?: string;
+        zip_code?: string;
+    }>({});
     const [newAddress, setNewAddress] = useState({
         full_name: "",
         address_line1: "",
@@ -96,6 +104,38 @@ export default function AddressesPage() {
 
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        let isValid = true;
+        let errors: any = {};
+
+        if (!newAddress.full_name || newAddress.full_name.trim().length < 2) {
+            errors.full_name = "Enter a valid full name";
+            isValid = false;
+        }
+        if (!newAddress.phone || !/^\d{10}$/.test(newAddress.phone)) {
+            errors.phone = "Enter a valid 10-digit mobile number";
+            isValid = false;
+        }
+        if (!newAddress.address_line1 || newAddress.address_line1.trim().length < 5) {
+            errors.address_line1 = "Enter a valid address";
+            isValid = false;
+        }
+        if (!newAddress.city || newAddress.city.trim().length < 2) {
+            errors.city = "Enter a valid city";
+            isValid = false;
+        }
+        if (!newAddress.state || newAddress.state.trim().length < 2) {
+            errors.state = "Enter a valid state";
+            isValid = false;
+        }
+        if (!newAddress.zip_code || !/^\d{6}$/.test(newAddress.zip_code)) {
+            errors.zip_code = "Enter a valid 6-digit Pincode";
+            isValid = false;
+        }
+
+        setFieldErrors(errors);
+        if (!isValid) return;
+
         setIsSubmitting(true);
         try {
             if (editingId) {
@@ -190,15 +230,18 @@ export default function AddressesPage() {
                             <form onSubmit={handleAddSubmit} className="p-6 flex flex-col gap-4">
                                 <div>
                                     <label className="block text-sm font-bold mb-1">Full name (First and Last name)</label>
-                                    <input required type="text" value={newAddress.full_name} onChange={e => setNewAddress({ ...newAddress, full_name: e.target.value })} className="w-full border border-gray-400 rounded p-2 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] focus:outline-none" />
+                                    <input required type="text" value={newAddress.full_name} onChange={e => setNewAddress({ ...newAddress, full_name: e.target.value })} className={`w-full border ${fieldErrors.full_name ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-gray-400 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)]'} rounded p-2 focus:outline-none`} />
+                                    {fieldErrors.full_name && <p className="text-[#c40000] text-[12px] mt-1"><span className="text-[14px]">!</span> {fieldErrors.full_name}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold mb-1">Mobile number</label>
-                                    <input required type="tel" value={newAddress.phone} onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })} className="w-full border border-gray-400 rounded p-2 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] focus:outline-none" />
+                                    <input required type="tel" value={newAddress.phone} onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })} className={`w-full border ${fieldErrors.phone ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-gray-400 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)]'} rounded p-2 focus:outline-none`} />
+                                    {fieldErrors.phone && <p className="text-[#c40000] text-[12px] mt-1"><span className="text-[14px]">!</span> {fieldErrors.phone}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold mb-1">Flat, House no., Building, Company, Apartment</label>
-                                    <input required type="text" value={newAddress.address_line1} onChange={e => setNewAddress({ ...newAddress, address_line1: e.target.value })} className="w-full border border-gray-400 rounded p-2 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] focus:outline-none" />
+                                    <input required type="text" value={newAddress.address_line1} onChange={e => setNewAddress({ ...newAddress, address_line1: e.target.value })} className={`w-full border ${fieldErrors.address_line1 ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-gray-400 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)]'} rounded p-2 focus:outline-none`} />
+                                    {fieldErrors.address_line1 && <p className="text-[#c40000] text-[12px] mt-1"><span className="text-[14px]">!</span> {fieldErrors.address_line1}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold mb-1">Area, Street, Sector, Village (Optional)</label>
@@ -207,16 +250,19 @@ export default function AddressesPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-bold mb-1">Town/City</label>
-                                        <input required type="text" value={newAddress.city} onChange={e => setNewAddress({ ...newAddress, city: e.target.value })} className="w-full border border-gray-400 rounded p-2 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] focus:outline-none" />
+                                        <input required type="text" value={newAddress.city} onChange={e => setNewAddress({ ...newAddress, city: e.target.value })} className={`w-full border ${fieldErrors.city ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-gray-400 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)]'} rounded p-2 focus:outline-none`} />
+                                        {fieldErrors.city && <p className="text-[#c40000] text-[12px] mt-1"><span className="text-[14px]">!</span> {fieldErrors.city}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold mb-1">State</label>
-                                        <input required type="text" value={newAddress.state} onChange={e => setNewAddress({ ...newAddress, state: e.target.value })} className="w-full border border-gray-400 rounded p-2 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] focus:outline-none" />
+                                        <input required type="text" value={newAddress.state} onChange={e => setNewAddress({ ...newAddress, state: e.target.value })} className={`w-full border ${fieldErrors.state ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-gray-400 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)]'} rounded p-2 focus:outline-none`} />
+                                        {fieldErrors.state && <p className="text-[#c40000] text-[12px] mt-1"><span className="text-[14px]">!</span> {fieldErrors.state}</p>}
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold mb-1">Pincode</label>
-                                    <input required type="text" value={newAddress.zip_code} onChange={e => setNewAddress({ ...newAddress, zip_code: e.target.value })} className="w-full border border-gray-400 rounded p-2 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] focus:outline-none" />
+                                    <input required type="text" value={newAddress.zip_code} onChange={e => setNewAddress({ ...newAddress, zip_code: e.target.value })} className={`w-full border ${fieldErrors.zip_code ? 'border-red-600 focus:border-red-600 focus:shadow-[0_0_3px_2px_rgba(220,38,38,.5)]' : 'border-gray-400 focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)]'} rounded p-2 focus:outline-none`} />
+                                    {fieldErrors.zip_code && <p className="text-[#c40000] text-[12px] mt-1"><span className="text-[14px]">!</span> {fieldErrors.zip_code}</p>}
                                 </div>
                                 <div className="flex items-center gap-2 mt-2">
                                     <input type="checkbox" id="isDefault" checked={newAddress.is_default} onChange={e => setNewAddress({ ...newAddress, is_default: e.target.checked })} className="h-4 w-4 text-[#e77600] focus:ring-[#e77600] rounded" />

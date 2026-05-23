@@ -4,9 +4,9 @@ import BuyBox from "@/components/product/BuyBox";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { cookies } from "next/headers";
 import HomeProductSwiper from "@/components/Home/HomeProductSwiper";
 import RecentlyViewedTracker from "@/components/product/RecentlyViewedTracker";
+import RecentlyViewedClient from "@/components/Home/RecentlyViewedClient";
 import { Metadata } from "next";
 
 export async function generateMetadata(
@@ -21,7 +21,7 @@ export async function generateMetadata(
         };
     }
 
-    const shortDesc = product.description 
+    const shortDesc = product.description
         ? (product.description.length > 155 ? product.description.substring(0, 155) + '...' : product.description)
         : `Buy ${product.name} at the best price on Amozun.in.`;
 
@@ -52,20 +52,7 @@ async function getSimilarProducts(categorySlug: string, excludeId: string) {
     }
 }
 
-async function getRecentlyViewedProducts() {
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-        if (!token) return [];
-        const res = await apiFetch(`/recently-viewed`, {
-            headers: { Cookie: `token=${token}` }
-        });
-        if (res.status === 'success') return res.data;
-        return [];
-    } catch (e) {
-        return [];
-    }
-}
+
 
 export default async function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -75,9 +62,8 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
         notFound();
     }
 
-    const [similarProducts, recentlyViewed] = await Promise.all([
-        getSimilarProducts(product.category_slug, product.id),
-        getRecentlyViewedProducts()
+    const [similarProducts] = await Promise.all([
+        getSimilarProducts(product.category_slug, product.id)
     ]);
 
     // Parse specifications if it's a JSON string, otherwise split by newlines or keep as string
@@ -110,7 +96,7 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
     return (
         <main className="bg-white min-h-screen text-[#0F1111]">
             <RecentlyViewedTracker productId={product.id} />
-            
+
             {/* Breadcrumbs */}
             <div className="flex items-center text-xs text-gray-500 py-2 px-4 border-b border-gray-200 gap-1 overflow-x-auto whitespace-nowrap">
                 <Link href="/" className="hover:underline">Home</Link>
@@ -201,9 +187,7 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                 {similarProducts.length > 0 && (
                     <HomeProductSwiper title="You may also like" products={similarProducts} />
                 )}
-                {recentlyViewed.length > 0 && (
-                    <HomeProductSwiper title="Recently viewed products" products={recentlyViewed.filter((p: any) => p.id !== product.id)} />
-                )}
+                <RecentlyViewedClient variant="swiper" excludeId={product.id} />
             </div>
         </main>
     );
