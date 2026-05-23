@@ -12,6 +12,7 @@ export default function CheckoutPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'COD' | 'CARD'>('COD');
 
     const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
     const [selectedAddressId, setSelectedAddressId] = useState<string>("new");
@@ -96,7 +97,10 @@ export default function CheckoutPage() {
                 }
             }
 
-            const bodyPayload: any = { shippingAddress: finalAddress };
+            const bodyPayload: any = { 
+                shippingAddress: finalAddress,
+                paymentMethod
+            };
             if (isBuyNow) {
                 bodyPayload.buyNowItem = buyNowItem;
             }
@@ -110,7 +114,12 @@ export default function CheckoutPage() {
                 if (!isBuyNow) {
                     await fetchCart(); // Refresh cart to empty it locally
                 }
-                router.push(`/orders/${res.data.orderId}`);
+                
+                if (res.data.url) {
+                    window.location.href = res.data.url;
+                } else {
+                    router.push(`/orders/${res.data.orderId}`);
+                }
             }
         } catch (error: any) {
             alert(error.message || "Failed to place order");
@@ -245,11 +254,34 @@ export default function CheckoutPage() {
                         {/* 2. Payment method */}
                         <div>
                             <h2 className="text-xl font-bold mb-4">2. Payment method</h2>
-                            <div className="flex items-center gap-2">
-                                <input type="radio" id="cod" name="payment" checked readOnly className="h-4 w-4 text-[#e77600] focus:ring-[#e77600]" />
-                                <label htmlFor="cod" className="text-sm font-medium">Cash on Delivery (COD) / Pay on Delivery</label>
-                            </div>
-                            <p className="text-xs text-gray-500 ml-6 mt-1">Please pay the delivery agent in cash or via UPI when the package arrives.</p>
+                            
+                            <label className={`flex items-start gap-3 p-3 border rounded cursor-pointer mb-3 ${paymentMethod === "COD" ? 'border-[#e77600] bg-[#fcf5ee]' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                <input 
+                                    type="radio" 
+                                    name="payment" 
+                                    checked={paymentMethod === 'COD'} 
+                                    onChange={() => setPaymentMethod('COD')}
+                                    className="mt-1 h-4 w-4 text-[#e77600] focus:ring-[#e77600]" 
+                                />
+                                <div>
+                                    <div className="text-sm font-medium">Cash on Delivery (COD) / Pay on Delivery</div>
+                                    <p className="text-xs text-gray-500 mt-1">Please pay the delivery agent in cash or via UPI when the package arrives.</p>
+                                </div>
+                            </label>
+
+                            <label className={`flex items-start gap-3 p-3 border rounded cursor-pointer ${paymentMethod === "CARD" ? 'border-[#e77600] bg-[#fcf5ee]' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                <input 
+                                    type="radio" 
+                                    name="payment" 
+                                    checked={paymentMethod === 'CARD'} 
+                                    onChange={() => setPaymentMethod('CARD')}
+                                    className="mt-1 h-4 w-4 text-[#e77600] focus:ring-[#e77600]" 
+                                />
+                                <div>
+                                    <div className="text-sm font-medium">Credit or Debit Card (Stripe)</div>
+                                    <p className="text-xs text-gray-500 mt-1">Pay securely via Stripe Hosted Checkout.</p>
+                                </div>
+                            </label>
                         </div>
 
                     </div>

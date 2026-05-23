@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { ShoppingCart, Play } from "lucide-react";
+import { ShoppingCart, Play, Heart, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -18,10 +18,13 @@ export default function BuyBox({ productId, price, mrp, stock }: BuyBoxProps) {
     const [quantity, setQuantity] = useState(1);
     const { user } = useAuth();
     const { addToCart } = useCart();
-    const { addToWishlist } = useWishlist();
+    const { items: wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
     const router = useRouter();
     const [isAdding, setIsAdding] = useState(false);
+    const [addedToCart, setAddedToCart] = useState(false);
     const [isAddingWishlist, setIsAddingWishlist] = useState(false);
+
+    const isWishlisted = wishlistItems.some(item => item.product_id === productId);
 
     const handleAddToCart = async () => {
         if (!user) {
@@ -31,6 +34,8 @@ export default function BuyBox({ productId, price, mrp, stock }: BuyBoxProps) {
         setIsAdding(true);
         await addToCart(productId, quantity);
         setIsAdding(false);
+        setAddedToCart(true);
+        setTimeout(() => setAddedToCart(false), 2000);
     };
 
     const handleBuyNow = () => {
@@ -42,14 +47,21 @@ export default function BuyBox({ productId, price, mrp, stock }: BuyBoxProps) {
         router.push(`/checkout?product=${productId}&quantity=${quantity}`);
     };
 
-    const handleAddToWishlist = async () => {
+    const handleWishlistToggle = async () => {
         if (!user) {
             router.push('/login');
             return;
         }
         setIsAddingWishlist(true);
         try {
-            await addToWishlist(productId);
+            if (isWishlisted) {
+                const wishlistItem = wishlistItems.find(item => item.product_id === productId);
+                if (wishlistItem) {
+                    await removeFromWishlist(wishlistItem.wishlist_item_id);
+                }
+            } else {
+                await addToWishlist(productId);
+            }
         } catch (e) {
             // Error handling could go here
         } finally {
@@ -100,27 +112,33 @@ export default function BuyBox({ productId, price, mrp, stock }: BuyBoxProps) {
 
                     <button
                         onClick={handleAddToCart}
-                        disabled={isAdding}
-                        className="w-full bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-full py-2 px-4 text-sm font-medium shadow-sm transition-colors flex items-center justify-center disabled:opacity-70"
+                        disabled={isAdding || addedToCart}
+                        className={`w-full rounded-full py-2 px-4 text-sm font-medium shadow-sm transition-all duration-300 flex items-center justify-center disabled:opacity-80
+                            ${addedToCart
+                                ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]"
+                                : "bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] text-[#0F1111]"
+                            }`}
                     >
-                        {isAdding ? "Adding..." : "Add to Cart"}
+                        {addedToCart && <Check className="h-4 w-4 mr-2" />}
+                        {isAdding ? "Adding..." : addedToCart ? "Added to Cart" : "Add to Cart"}
                     </button>
 
                     <button
                         onClick={handleBuyNow}
                         className="w-full bg-[#ffa41c] hover:bg-[#fa8900] border border-[#ff8f00] rounded-full py-2 px-4 text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2"
                     >
-                        <Play className="h-4 w-4 fill-current" /> Buy Now
+                        Buy Now
                     </button>
-                    
+
                     <div className="w-full border-t border-gray-200 my-2" />
-                    
+
                     <button
-                        onClick={handleAddToWishlist}
+                        onClick={handleWishlistToggle}
                         disabled={isAddingWishlist}
                         className="w-full bg-white hover:bg-gray-50 border border-gray-300 rounded-full py-1.5 px-4 text-sm shadow-sm transition-colors flex items-center justify-center disabled:opacity-70 text-[#0F1111]"
                     >
-                        {isAddingWishlist ? "Adding..." : "Add to Wish List"}
+                        <Heart className={`h-4 w-4 mr-2 transition-colors duration-300 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+                        {isAddingWishlist ? "Updating..." : isWishlisted ? "In Wish List" : "Add to Wish List"}
                     </button>
                 </div>
             )}

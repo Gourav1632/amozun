@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function RecentlyViewedSidebar() {
     const [products, setProducts] = useState<any[]>([]);
@@ -32,6 +33,24 @@ export default function RecentlyViewedSidebar() {
         };
         fetchRecentlyViewed();
     }, [user]);
+
+    const router = useRouter();
+    const [addedStates, setAddedStates] = useState<Record<string, boolean>>({});
+    const [addingStates, setAddingStates] = useState<Record<string, boolean>>({});
+
+    const handleAddToCart = async (productId: string) => {
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+        setAddingStates(prev => ({ ...prev, [productId]: true }));
+        await addToCart(productId, 1);
+        setAddingStates(prev => ({ ...prev, [productId]: false }));
+        setAddedStates(prev => ({ ...prev, [productId]: true }));
+        setTimeout(() => {
+            setAddedStates(prev => ({ ...prev, [productId]: false }));
+        }, 2000);
+    };
 
     if (loading) {
         return (
@@ -68,22 +87,21 @@ export default function RecentlyViewedSidebar() {
                             <Link href={`/product/${product.id}`} className="text-sm font-semibold text-[#007185] hover:text-[#c45500] hover:underline line-clamp-2">
                                 {product.name}
                             </Link>
-                            {/* Stars placeholder */}
-                            <div className="flex items-center mt-1">
-                                <div className="flex text-[#ffa41c] text-xs">
-                                    {'★★★★☆'}
-                                </div>
-                                <span className="text-xs text-[#007185] ml-1 hover:underline cursor-pointer">123</span>
-                            </div>
+
                             <div className="flex items-center mt-1">
                                 <span className="text-[#cc0c39] font-semibold text-xs mr-1">-40%</span>
                                 <span className="text-[#0f1111] font-medium">₹{product.price.toLocaleString()}</span>
                             </div>
                             <button
-                                onClick={() => addToCart(product.id, 1)}
-                                className="mt-2 bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-full text-xs font-semibold py-1 px-3 w-fit shadow-sm transition-colors"
+                                onClick={() => handleAddToCart(product.id)}
+                                disabled={addingStates[product.id] || addedStates[product.id]}
+                                className={`mt-2 border rounded-full text-xs font-semibold py-1 px-3 w-fit shadow-sm transition-all duration-300 flex items-center justify-center disabled:opacity-80
+                                    ${addedStates[product.id] 
+                                        ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]" 
+                                        : "bg-[#ffd814] hover:bg-[#f7ca00] border-[#fcd200] text-[#0F1111]"
+                                    }`}
                             >
-                                Add to cart
+                                {addingStates[product.id] ? "Adding..." : addedStates[product.id] ? "Added!" : "Add to cart"}
                             </button>
                         </div>
                     </li>

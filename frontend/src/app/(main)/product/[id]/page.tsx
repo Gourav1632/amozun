@@ -3,8 +3,9 @@ import ProductGallery from "@/components/product/ProductGallery";
 import BuyBox from "@/components/product/BuyBox";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { cookies } from "next/headers";
+import HomeProductSwiper from "@/components/Home/HomeProductSwiper";
 
 async function getProduct(id: string) {
     try {
@@ -29,6 +30,33 @@ async function getProduct(id: string) {
     }
 }
 
+async function getSimilarProducts(categorySlug: string, excludeId: string) {
+    try {
+        const res = await apiFetch(`/products?category=${categorySlug}&limit=15`, { cache: 'no-store' });
+        if (res.status === 'success' && Array.isArray(res.data)) {
+            return res.data.filter((p: any) => p.id !== excludeId).slice(0, 10);
+        }
+        return [];
+    } catch (e) {
+        return [];
+    }
+}
+
+async function getRecentlyViewedProducts() {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
+        if (!token) return [];
+        const res = await apiFetch(`/recently-viewed`, {
+            headers: { Cookie: `token=${token}` }
+        });
+        if (res.status === 'success') return res.data;
+        return [];
+    } catch (e) {
+        return [];
+    }
+}
+
 export default async function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const product = await getProduct(id);
@@ -36,6 +64,11 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
     if (!product) {
         notFound();
     }
+
+    const [similarProducts, recentlyViewed] = await Promise.all([
+        getSimilarProducts(product.category_slug, product.id),
+        getRecentlyViewedProducts()
+    ]);
 
     // Parse specifications if it's a JSON string, otherwise split by newlines or keep as string
     let specs: any = [];
@@ -64,10 +97,6 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
         console.error("Error parsing specs", e);
     }
 
-    // Default static rating for now
-    const rating = 4.5;
-    const ratingCount = Math.floor(Math.random() * 1000) + 50;
-
     return (
         <main className="bg-white min-h-screen text-[#0F1111]">
             {/* Breadcrumbs */}
@@ -89,25 +118,9 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
 
                     {/* Middle Column: Product Info */}
                     <div className="md:col-span-6 lg:col-span-5 flex flex-col px-0 sm:px-4">
-                        <h1 className="text-xl sm:text-2xl font-medium leading-tight mb-2">
+                        <h1 className="text-xl sm:text-2xl font-medium leading-tight mb-2 pb-2 border-b border-gray-200">
                             {product.name}
                         </h1>
-
-                        {/* Ratings */}
-                        <div className="flex items-center gap-4 mb-2 pb-2 border-b border-gray-200">
-                            <div className="flex items-center cursor-pointer group">
-                                <span className="text-[#007185] text-sm mr-1 group-hover:text-[#c45500] group-hover:underline">{rating}</span>
-                                <div className="flex">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star key={star} className={`h-4 w-4 ${star <= Math.floor(rating) ? 'fill-[#FFA41C] text-[#FFA41C]' : 'text-gray-300'}`} />
-                                    ))}
-                                </div>
-                                <ChevronDown className="h-3 w-3 text-gray-500 ml-1" />
-                            </div>
-                            <span className="text-[#007185] text-sm cursor-pointer hover:text-[#c45500] hover:underline">
-                                {ratingCount.toLocaleString()} ratings
-                            </span>
-                        </div>
 
                         {/* Price Area */}
                         <div className="mb-4 pt-2">
@@ -169,6 +182,16 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                     </div>
 
                 </div>
+            </div>
+
+            <div className="max-w-[1500px] mx-auto bg-transparent pb-10">
+                <div className="bg-transparent h-4"></div>
+                {similarProducts.length > 0 && (
+                    <HomeProductSwiper title="You may also like" products={similarProducts} />
+                )}
+                {recentlyViewed.length > 0 && (
+                    <HomeProductSwiper title="Recently viewed products" products={recentlyViewed.filter((p: any) => p.id !== product.id)} />
+                )}
             </div>
         </main>
     );

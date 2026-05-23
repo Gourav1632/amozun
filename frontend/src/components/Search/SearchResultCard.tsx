@@ -1,5 +1,12 @@
+'use client'
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
 
 export interface Product {
     id: string;
@@ -10,6 +17,28 @@ export interface Product {
 }
 
 export default function SearchResultCard({ product }: { product: Product }) {
+    const { addToCart } = useCart();
+    const { user } = useAuth();
+    const router = useRouter();
+    const [isAdding, setIsAdding] = useState(false);
+    const [addedToCart, setAddedToCart] = useState(false);
+
+    const handleAddToCart = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+
+        setIsAdding(true);
+        await addToCart(product.id, 1);
+        setIsAdding(false);
+        setAddedToCart(true);
+        setTimeout(() => setAddedToCart(false), 2000);
+    };
+
     const discount = product.mrp > product.price 
         ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
         : 0;
@@ -39,13 +68,6 @@ export default function SearchResultCard({ product }: { product: Product }) {
                     </h2>
                 </Link>
                 
-                {/* Fake Review Stars for Amazon Feel */}
-                <div className="flex items-center gap-1 mb-2">
-                    <div className="text-[#de7921] text-sm">★★★★☆</div>
-                    <span className="text-[#007185] text-xs hover:text-[#c45500] cursor-pointer hover:underline">
-                        {Math.floor(Math.random() * 5000) + 50}
-                    </span>
-                </div>
 
                 {/* Price Section */}
                 <div className="mt-2 flex items-center gap-2">
@@ -73,8 +95,17 @@ export default function SearchResultCard({ product }: { product: Product }) {
 
                 {/* Add to Cart button */}
                 <div className="mt-4 sm:mt-auto pt-2">
-                    <button className="bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-full py-1.5 px-4 text-sm shadow-sm">
-                        Add to cart
+                    <button 
+                        onClick={handleAddToCart}
+                        disabled={isAdding || addedToCart}
+                        className={`border rounded-full py-1.5 px-4 text-sm font-medium shadow-sm transition-all duration-300 flex items-center justify-center disabled:opacity-80
+                            ${addedToCart 
+                                ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]" 
+                                : "bg-[#ffd814] hover:bg-[#f7ca00] border-[#fcd200] text-[#0F1111]"
+                            }`}
+                    >
+                        {addedToCart && <Check className="h-4 w-4 mr-1" />}
+                        {isAdding ? "Adding..." : addedToCart ? "Added" : "Add to cart"}
                     </button>
                 </div>
             </div>

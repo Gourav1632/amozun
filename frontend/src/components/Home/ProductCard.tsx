@@ -2,6 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
 
 interface Product {
     id: string;
@@ -17,7 +22,29 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+    const { addToCart } = useCart();
+    const { user } = useAuth();
+    const router = useRouter();
+    const [isAdding, setIsAdding] = useState(false);
+    const [addedToCart, setAddedToCart] = useState(false);
+
     const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
+
+    const handleAddToCart = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+
+        setIsAdding(true);
+        await addToCart(product.id, 1);
+        setIsAdding(false);
+        setAddedToCart(true);
+        setTimeout(() => setAddedToCart(false), 2000);
+    };
 
     return (
         <div className="flex flex-col bg-white w-full rounded-md p-3 relative h-full">
@@ -67,9 +94,18 @@ export default function ProductCard({ product }: ProductCardProps) {
                     </div>
                 )}
                 
-                {/* Add to Cart button (simplified for now) */}
-                <button className="w-full mt-3 bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-full py-[6px] px-3 text-[13px] text-[#0F1111] shadow-sm active:bg-[#f0b800] transition-colors">
-                    Add to cart
+                {/* Add to Cart button */}
+                <button 
+                    onClick={handleAddToCart}
+                    disabled={isAdding || addedToCart}
+                    className={`w-full mt-3 border rounded-full py-[6px] px-3 text-[13px] text-[#0F1111] shadow-sm transition-all duration-300 flex items-center justify-center disabled:opacity-80
+                        ${addedToCart 
+                            ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]" 
+                            : "bg-[#ffd814] hover:bg-[#f7ca00] border-[#fcd200]"
+                        }`}
+                >
+                    {addedToCart && <Check className="h-4 w-4 mr-1" />}
+                    {isAdding ? "Adding..." : addedToCart ? "Added" : "Add to cart"}
                 </button>
             </div>
         </div>

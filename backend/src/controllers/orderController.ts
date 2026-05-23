@@ -4,9 +4,11 @@ import { AppError } from "../utils/AppError.js";
 import { sendOrderConfirmationEmail } from "../services/emailService.js";
 import { redisClient } from "../db/redis.js";
 import { logger } from "../utils/logger.js";
+import { stripe } from "../utils/stripe.js";
+import type Stripe from "stripe";
 
 export const placeOrder = async (req: Request, res: Response) => {
-    const { shippingAddress, buyNowItem } = req.body;
+    const { shippingAddress, buyNowItem, paymentMethod = 'COD' } = req.body;
 
     if (!shippingAddress) {
         throw new AppError("Shipping address is required.", 400);
@@ -88,7 +90,9 @@ export const placeOrder = async (req: Request, res: Response) => {
             .values({
                 user_id: userId,
                 total_amount: totalAmount,
-                status: "CONFIRMED",
+                status: paymentMethod === 'CARD' ? "PENDING" : "CONFIRMED",
+                payment_method: paymentMethod === "CARD" ? "CARD" : "COD",
+                payment_status: "PENDING",
             })
             .returning("id")
             .executeTakeFirstOrThrow();
@@ -145,27 +149,72 @@ export const placeOrder = async (req: Request, res: Response) => {
         logger.error('Failed to invalidate product cache after order:', err);
     }
 
-    // 5. Send Email Notification
-    const user = await db
-        .selectFrom("users")
-        .where("id", "=", userId)
-        .select(["email", "name"])
-        .executeTakeFirst();
+    if (paymentMethod === 'CARD') {
+        const lineItems = cartItems.map((item) => ({
+            price_data: {
+                currency: 'inr',
+                product_data: { name: item.name },
+                unit_amount: Math.round(Number(item.price) * 100), // convert to paise
+            },
+            quantity: item.quantity,
+        }));
 
-    if (user) {
-        await sendOrderConfirmationEmail(
-            user.email,
-            user.name,
-            orderId,
-            totalAmount
-        );
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: lineItems,
+            mode: 'payment',
+            metadata: { orderId: orderId },
+            success_url: `${process.env.FRONTEND_URL}/orders?success=true`,
+            cancel_url: `${process.env.FRONTEND_URL}/checkout?cancelled=true`,
+        });
+
+        res.status(201).json({
+            status: "success",
+            message: "Order initiated",
+            data: { orderId, url: session.url },
+        });
+    } else {
+        const user = await db
+            .selectFrom("users")
+            .where("id", "=", userId)
+            .select(["email", "name"])
+            .executeTakeFirst();
+
+        if (user) {
+            const productIds = cartItems.map(item => item.product_id);
+            let images: Record<string, string> = {};
+            if (productIds.length > 0) {
+                const imgs = await db.selectFrom("product_images")
+                    .where("product_id", "in", productIds)
+                    .where("is_primary", "=", true)
+                    .select(["product_id", "url"])
+                    .execute();
+                imgs.forEach(img => images[img.product_id] = img.url);
+            }
+
+            const emailItems = cartItems.map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                image_url: images[item.product_id] || null
+            }));
+
+            await sendOrderConfirmationEmail(
+                user.email,
+                user.name,
+                orderId,
+                totalAmount,
+                emailItems
+            );
+        }
+
+        res.status(201).json({
+            status: "success",
+            message: "Order placed successfully",
+            data: { orderId },
+        });
     }
 
-    res.status(201).json({
-        status: "success",
-        message: "Order placed successfully",
-        data: { orderId },
-    });
 };
 
 export const getMyOrders = async (req: Request, res: Response) => {
@@ -179,7 +228,7 @@ export const getMyOrders = async (req: Request, res: Response) => {
     // Fetch items for these orders
     const orderIds = orders.map(o => o.id);
     let itemsByOrderId: Record<string, any[]> = {};
-    
+
     if (orderIds.length > 0) {
         const orderItems = await db
             .selectFrom("order_items")
@@ -196,7 +245,7 @@ export const getMyOrders = async (req: Request, res: Response) => {
                 "product_images.url as image_url"
             ])
             .execute();
-            
+
         orderItems.forEach(item => {
             const id = item.order_id;
             if (id) {
@@ -265,3 +314,103 @@ export const getOrderById = async (req: Request, res: Response) => {
         },
     });
 };
+
+export const handleStripeWebhook = async (req: Request, res: Response) => {
+    const signature = req.headers['stripe-signature'];
+
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!signature || !webhookSecret) {
+        logger.error("Missing stripe signature or webhook secret");
+        res.status(400).send(`Webhook Error: Missing signature or secret`);
+        return;
+    }
+
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
+    } catch (err: any) {
+        logger.error(`Webhook signature verification failed: ${err.message}`);
+        res.status(400).send(`Webhook Error: ${err.message}`);
+        return;
+    }
+
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderId = session.metadata?.orderId;
+
+        if (orderId) {
+            try {
+                await db
+                    .updateTable("orders")
+                    .set({
+                        payment_status: "PAID",
+                        status: "CONFIRMED",
+                    })
+                    .where("id", "=", orderId)
+                    .execute();
+
+                const orderData = await db
+                    .selectFrom("orders")
+                    .innerJoin("users", "users.id", "orders.user_id")
+                    .where("orders.id", "=", orderId)
+                    .select(["users.email", "users.name", "orders.total_amount"])
+                    .executeTakeFirst();
+
+                if (orderData) {
+                    const items = await db
+                        .selectFrom("order_items")
+                        .leftJoin("product_images", join => 
+                            join.onRef("product_images.product_id", "=", "order_items.product_id")
+                                .on("product_images.is_primary", "=", true)
+                        )
+                        .where("order_items.order_id", "=", orderId)
+                        .select([
+                            "order_items.product_name_snapshot as name",
+                            "order_items.price_at_purchase as price",
+                            "order_items.quantity",
+                            "product_images.url as image_url"
+                        ])
+                        .execute();
+
+                    await sendOrderConfirmationEmail(
+                        orderData.email,
+                        orderData.name,
+                        orderId,
+                        orderData.total_amount,
+                        items
+                    );
+                }
+                logger.info(`Successfully processed payment for order: ${orderId}`);
+            } catch (err) {
+                logger.error(`Error updating order after payment: ${err}`);
+            }
+        }
+    } else if (
+        event.type === 'checkout.session.expired' || 
+        event.type === 'checkout.session.async_payment_failed'
+    ) {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderId = session.metadata?.orderId;
+
+        if (orderId) {
+            try {
+                await db
+                    .updateTable("orders")
+                    .set({
+                        payment_status: "FAILED",
+                        status: "CANCELLED",
+                    })
+                    .where("id", "=", orderId)
+                    .execute();
+                    
+                logger.warn(`Payment failed or expired for order: ${orderId}. Marked as CANCELLED.`);
+            } catch (err) {
+                logger.error(`Error updating failed order: ${err}`);
+            }
+        }
+    }
+    
+    res.json({ received: true });
+}

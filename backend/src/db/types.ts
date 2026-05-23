@@ -126,6 +126,8 @@ export interface OrderTable {
     id: Generated<string>;
     user_id: string;
     status: Generated<"PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED">;
+    payment_method: Generated<"COD" | "CARD">;
+    payment_status: Generated<"PENDING" | "PAID" | "FAILED" | "REFUNDED">;
     total_amount: number;
     created_at: ColumnType<Date, string | undefined, never>;
 }

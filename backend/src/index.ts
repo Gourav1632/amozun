@@ -13,13 +13,18 @@ import wishlistRoutes from './routes/wishlist.js'
 import orderRoutes from './routes/orders.js'
 import addressRoutes from './routes/addresses.js'
 import recentlyViewedRoutes from './routes/recentlyViewed.js'
+import { handleStripeWebhook } from "./controllers/orderController.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
 }));
+
+app.post('/api/orders/webhook', express.raw({
+  type: 'application/json',
+}), handleStripeWebhook);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -37,7 +42,7 @@ app.use(
 );
 
 app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', message: 'Amozun server is running' })
+  res.json({ status: 'ok', message: 'Amozun server is running' })
 })
 
 app.use('/api/auth', authRoutes);
@@ -52,5 +57,5 @@ app.use('/api/recently-viewed', recentlyViewedRoutes);
 app.use(errorHandler);
 
 app.listen(port, () => {
-    logger.info(`Server is running on http://localhost:${port}`);
+  logger.info(`Server is running on http://localhost:${port}`);
 })
