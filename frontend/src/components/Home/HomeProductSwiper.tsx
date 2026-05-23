@@ -49,9 +49,9 @@ export default function HomeProductSwiper({ title, products }: HomeProductSwiper
                 }}
                 style={{
                     // @ts-ignore
-                    '--swiper-navigation-color': '#0F1111',
-                    '--swiper-navigation-size': '20px',
-                    '--swiper-navigation-sides-offset': '0px',
+                    '--swiper-navigation-color': '#333',
+                    '--swiper-navigation-size': '2rem',
+                    '--swiper-navigation-sides-offset': '10px',
                 }}
             >
                 {products.map((product) => (
@@ -61,26 +61,31 @@ export default function HomeProductSwiper({ title, products }: HomeProductSwiper
                 ))}
             </Swiper>
 
-            {/* Custom CSS to style the navigation buttons like Amazon's square buttons */}
+            {/* Custom CSS to style the navigation buttons */}
             <style jsx global>{`
                 .products-swiper-home .swiper-button-next,
                 .products-swiper-home .swiper-button-prev {
-                    background-color: white;
-                    width: 40px;
-                    height: 100px;
-                    border-radius: 4px;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                    border: 1px solid #ddd;
-                    top: 40%;
+                    display: none; /* Hidden on mobile */
                 }
-                .products-swiper-home .swiper-button-next:after,
-                .products-swiper-home .swiper-button-prev:after {
-                    font-size: 20px;
-                    font-weight: bold;
-                }
-                .products-swiper-home .swiper-button-disabled {
-                    opacity: 0.3;
-                    box-shadow: none;
+                
+                @media (min-width: 768px) {
+                    .products-swiper-home .swiper-button-next,
+                    .products-swiper-home .swiper-button-prev {
+                        display: flex;
+                        transition: opacity 0.2s ease, transform 0.2s ease;
+                        opacity: 0.8;
+                    }
+                    
+                    .products-swiper-home .swiper-button-next:hover,
+                    .products-swiper-home .swiper-button-prev:hover {
+                        opacity: 1;
+                        transform: scale(1.1);
+                    }
+                    
+                    .products-swiper-home .swiper-button-disabled {
+                        opacity: 0; /* Fully hide disabled buttons for a cleaner look */
+                        pointer-events: none;
+                    }
                 }
             `}</style>
         </div>
