@@ -26,7 +26,7 @@ export default function SearchResultCard({ product }: { product: Product }) {
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         requireAuth(async () => {
             setIsAdding(true);
             await addToCart(product.id, 1);
@@ -36,14 +36,14 @@ export default function SearchResultCard({ product }: { product: Product }) {
         });
     };
 
-    const discount = product.mrp > product.price 
-        ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
+    const discount = product.mrp > product.price
+        ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
         : 0;
 
     return (
-        <div 
+        <div
             onClick={() => router.push(`/product/${product.id}`)}
-            className="flex flex-col sm:flex-row bg-white border border-gray-200 rounded-sm overflow-hidden hover:shadow-md transition-shadow h-full cursor-pointer group"
+            className="flex flex-col bg-white border border-gray-200 rounded-sm overflow-hidden hover:shadow-md transition-shadow h-full cursor-pointer group"
         >
             {/* Image Container */}
             <div className="w-full bg-[#f8f8f8] flex-shrink-0 flex items-center justify-center p-2 sm:p-4 relative h-[150px] sm:h-[250px]">
@@ -56,18 +56,18 @@ export default function SearchResultCard({ product }: { product: Product }) {
                         sizes="(max-width: 640px) 100vw, 250px"
                     />
                 ) : (
-                    <div className="text-gray-400">No image</div>
+                    <div className="text-gray-400"></div>
                 )}
             </div>
 
             {/* Details Container */}
-            <div className="p-4 flex flex-col flex-grow">
+            <div className="p-4 flex flex-col flex-grow" >
                 <Link href={`/product/${product.id}`} onClick={(e) => e.stopPropagation()}>
                     <h2 className="text-[#0F1111] text-[16px] font-medium group-hover:text-[#c45500] line-clamp-3 mb-1">
                         {product.name}
                     </h2>
                 </Link>
-                
+
 
                 {/* Price Section */}
                 <div className="mt-2 flex items-center gap-2">
@@ -95,12 +95,12 @@ export default function SearchResultCard({ product }: { product: Product }) {
 
                 {/* Add to Cart button */}
                 <div className="mt-4 sm:mt-auto pt-2">
-                    <button 
+                    <button
                         onClick={handleAddToCart}
                         disabled={isAdding || addedToCart}
                         className={`border rounded-full py-1.5 px-4 text-sm font-medium shadow-sm transition-all duration-300 flex items-center justify-center disabled:opacity-80
-                            ${addedToCart 
-                                ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]" 
+                            ${addedToCart
+                                ? "bg-[#131A22] border-[#131A22] text-white scale-[0.98]"
                                 : "bg-[#ffd814] hover:bg-[#f7ca00] border-[#fcd200] text-[#0F1111]"
                             }`}
                     >

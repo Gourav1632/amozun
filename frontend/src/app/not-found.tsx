@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 
 export default function NotFound() {
     const [catImage, setCatImage] = useState('/images/cat1.png');
@@ -29,7 +27,6 @@ export default function NotFound() {
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
-            <Header />
             <main className="flex-grow flex flex-col items-center justify-center p-8 text-center text-[#0F1111]">
                 <Link href="/">
                     <div className="relative w-64 h-64 md:w-96 md:h-96 mb-6 cursor-pointer hover:scale-105 transition-transform duration-300">
@@ -37,6 +34,7 @@ export default function NotFound() {
                             src={catImage}
                             alt="Looking for something?"
                             fill
+                            sizes="(max-width: 768px) 16rem, 24rem"
                             className="object-contain"
                             priority
                         />
@@ -62,7 +60,6 @@ export default function NotFound() {
                     Return to Homepage
                 </Link>
             </main>
-            <Footer />
         </div>
     );
 }

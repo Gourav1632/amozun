@@ -1,26 +1,30 @@
-import { cookies } from "next/headers";
+'use client'
+
+import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import Image from "next/image";
 
-export default async function RecentlyViewedPage() {
-    let products: any[] = [];
+export default function RecentlyViewedPage() {
+    const [products, setProducts] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-        if (token) {
-            const res = await apiFetch('/recently-viewed', {
-                method: 'GET',
-                headers: {
-                    Cookie: `token=${token}`
+    useEffect(() => {
+        const fetchRecentlyViewed = async () => {
+            try {
+                const res = await apiFetch('/recently-viewed');
+                if (res.status === 'success' && res.data) {
+                    setProducts(res.data);
                 }
-            });
-            products = res.data || [];
-        }
-    } catch (e) {
-        console.error("Failed to fetch recently viewed products", e);
-    }
+            } catch (e) {
+                console.error("Failed to fetch recently viewed products", e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchRecentlyViewed();
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#eaeded] py-6 px-4">
@@ -30,12 +34,18 @@ export default async function RecentlyViewedPage() {
                     <h1 className="text-[28px] leading-8 font-medium text-[#0f1111]">
                         Recently Viewed Items
                     </h1>
-                    <span className="text-sm text-gray-500 text-nowrap">
-                        {products.length} {products.length === 1 ? 'item' : 'items'}
-                    </span>
+                    {!isLoading && (
+                        <span className="text-sm text-gray-500 text-nowrap">
+                            {products.length} {products.length === 1 ? 'item' : 'items'}
+                        </span>
+                    )}
                 </div>
 
-                {products.length === 0 ? (
+                {isLoading ? (
+                    <div className="py-10 text-center">
+                        <p className="text-lg mb-4 text-[#565959]">Loading recently viewed items...</p>
+                    </div>
+                ) : products.length === 0 ? (
                     <div className="py-10 text-center">
                         <p className="text-lg mb-4 text-[#565959]">You have no recently viewed items.</p>
                         <Link href="/" className="text-[#007185] hover:text-[#c45500] hover:underline">

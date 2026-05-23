@@ -13,7 +13,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
     const resolvedParams = await searchParams;
     const query = resolvedParams.search as string;
-    
+
     return {
         title: query ? `Amozun.in : ${query}` : 'Amozun.in: Search Results',
         description: `Search results for ${query || 'products'} on Amozun.in`,
@@ -38,7 +38,6 @@ async function getSearchResults(searchParams: any) {
         query.set('limit', '16');
 
         const res = await apiFetch(`/products?${query.toString()}`, { method: 'GET', cache: 'no-store' });
-
         return {
             products: res.data || [],
             pagination: res.pagination || { total: 0 }
