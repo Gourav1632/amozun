@@ -3,6 +3,7 @@ import HomeProductRow from "@/components/Home/HomeProductRow";
 import { apiFetch } from "@/lib/api";
 import Image from "next/image";
 import AuthBox from "@/components/Home/AuthBox";
+import { cookies } from "next/headers";
 
 async function fetchFilteredProducts(queryParams: string) {
     try {
@@ -14,15 +15,34 @@ async function fetchFilteredProducts(queryParams: string) {
     }
 }
 
+async function fetchRecentlyViewed() {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
+        if (!token) return [];
+
+        const res = await apiFetch('/recently-viewed', {
+            method: 'GET',
+            headers: {
+                Cookie: `token=${token}`
+            }
+        });
+        return res.data || [];
+    } catch (e) {
+        return [];
+    }
+}
+
 export default async function Home() {
     // Fetch all required data concurrently
-    const [electronics, fashionTop, homeTop, headphoneTop, deals, allOther] = await Promise.all([
+    const [electronics, fashionTop, homeTop, headphoneTop, deals, allOther, recentlyViewed] = await Promise.all([
         fetchFilteredProducts('category=electronics&limit=10'),
         fetchFilteredProducts('category=women&limit=4'),
         fetchFilteredProducts('category=home&limit=4'),
         fetchFilteredProducts('category=headphones&limit=4'),
         fetchFilteredProducts('minDiscount=10&sortBy=discount&sortOrder=desc&limit=10'),
-        fetchFilteredProducts('limit=10') // generic products
+        fetchFilteredProducts('limit=10'), // generic products
+        fetchRecentlyViewed()
     ]);
 
     return (
@@ -38,7 +58,7 @@ export default async function Home() {
                             {fashionTop.map((f: any, i: number) => (
                                 <div key={f.id || i} className="bg-[#f8f8f8] h-full w-full relative rounded-sm flex items-center justify-center p-2">
                                     {f.image_url ? (
-                                        <Image src={f.image_url} alt={f.name || ""} fill className="object-contain mix-blend-multiply p-2 hover:scale-105 transition-transform" />
+                                        <Image src={f.image_url} alt={f.name || ""} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain mix-blend-multiply p-2 hover:scale-105 transition-transform" />
                                     ) : null}
                                 </div>
                             ))}
@@ -56,7 +76,7 @@ export default async function Home() {
                             {homeTop.map((h: any, i: number) => (
                                 <div key={h.id || i} className="bg-[#f8f8f8] h-full w-full relative rounded-sm flex items-center justify-center p-2">
                                     {h.image_url ? (
-                                        <Image src={h.image_url} alt={h.name || ""} fill className="object-contain mix-blend-multiply p-2 hover:scale-105 transition-transform" />
+                                        <Image src={h.image_url} alt={h.name || ""} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain mix-blend-multiply p-2 hover:scale-105 transition-transform" />
                                     ) : null}
                                 </div>
                             ))}
@@ -72,7 +92,7 @@ export default async function Home() {
                         <h2 className="text-xl font-bold mb-4">Starting ₹149 | Headphones</h2>
                         <div className="bg-[#f8f8f8] h-full w-full mb-4 flex-grow relative rounded-sm overflow-hidden p-4">
                             {headphoneTop[0]?.image_url ? (
-                                <Image src={headphoneTop[0].image_url} alt={headphoneTop[0].name || ""} fill className="object-contain mix-blend-multiply p-4 hover:scale-105 transition-transform" />
+                                <Image src={headphoneTop[0].image_url} alt={headphoneTop[0].name || ""} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-contain mix-blend-multiply p-4 hover:scale-105 transition-transform" />
                             ) : null}
                         </div>
                         <a href="#" className="text-sm text-[#007185] hover:text-[#c45500] hover:underline">See all offers</a>
@@ -83,9 +103,12 @@ export default async function Home() {
 
                 {/* Product Rows */}
                 <div className="flex flex-col">
-                    <HomeProductRow title="Today's Deals" products={deals} maxItems={6} viewAllLink="/deals" />
-                    <HomeProductRow title="Bestselling Electronics" products={electronics} maxItems={6} viewAllLink="/category/electronics" />
-                    <HomeProductRow title="Trending in Fashion" products={fashionTop} maxItems={6} viewAllLink="/category/women" />
+                    {recentlyViewed && recentlyViewed.length > 0 && (
+                        <HomeProductRow title="Recently viewed items" products={recentlyViewed} maxItems={6} viewAllLink="/recently-viewed" />
+                    )}
+                    <HomeProductRow title="Today's Deals" products={deals} maxItems={6} viewAllLink="/search" />
+                    <HomeProductRow title="Bestselling Electronics" products={electronics} maxItems={6} viewAllLink="/search?category=electronics" />
+                    <HomeProductRow title="Trending in Fashion" products={fashionTop} maxItems={6} viewAllLink="/search?category=clothing" />
                     <HomeProductRow title="Explore More Products" products={allOther} maxItems={6} viewAllLink="/search" />
                 </div>
             </div>

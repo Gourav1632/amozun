@@ -20,6 +20,8 @@ export interface Database {
     orders: OrderTable;
     order_items: OrderItemTable;
     shipping_addresses: ShippingAddressTable;
+    user_addresses: UserAddressTable;
+    recently_viewed: RecentlyViewedTable;
 }
 
 
@@ -160,3 +162,32 @@ export interface ShippingAddressTable {
 export type ShippingAddress = Selectable<ShippingAddressTable>;
 export type NewShippingAddress = Insertable<ShippingAddressTable>;
 
+// ─── User Addresses ─────────────────────────────────────
+export interface UserAddressTable {
+    id: Generated<string>;
+    user_id: string;
+    full_name: string;
+    address_line1: string;
+    address_line2: string | null;
+    city: string;
+    state: string;
+    zip_code: string;
+    phone: string;
+    is_default: Generated<boolean>;
+}
+
+export type UserAddress = Selectable<UserAddressTable>;
+export type NewUserAddress = Insertable<UserAddressTable>;
+export type UserAddressUpdate = Updateable<UserAddressTable>;
+
+// ─── Recently Viewed ────────────────────────────────────
+export interface RecentlyViewedTable {
+    id: Generated<string>;
+    user_id: string;
+    product_id: string;
+    viewed_at: ColumnType<Date, string | undefined, string | undefined>;
+}
+
+export type RecentlyViewed = Selectable<RecentlyViewedTable>;
+export type NewRecentlyViewed = Insertable<RecentlyViewedTable>;
+export type RecentlyViewedUpdate = Updateable<RecentlyViewedTable>;

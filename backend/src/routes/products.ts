@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { getAllProducts, getProductById } from "../controllers/productController.js";
+import { getAllProducts, getProductById, getSearchSuggestions } from "../controllers/productController.js";
 
 const router = Router();
 
 router.get('/', getAllProducts);
+
+router.get('/search-suggestions', getSearchSuggestions);
 
 router.get('/:id', getProductById);
 

@@ -20,15 +20,15 @@ export default function HomeProductRow({ title, products, maxItems = 6, viewAllL
                     {title}
                 </h2>
                 <Link href={viewAllLink} className="text-[14px] text-[#007185] hover:text-[#c45500] hover:underline font-medium">
-                    View all offers
+                    View all
                 </Link>
             </div>
-            
-            <div className="flex gap-4 overflow-hidden">
+
+            <div className="flex gap-4 overflow-x-auto overflow-y-hidden snap-x pb-4 hide-scrollbar">
                 {displayProducts.map((product) => (
-                    <div 
-                        key={product.id} 
-                        className="h-full flex-none w-[calc(50%-8px)] sm:w-[calc(33.333%-10.66px)] md:w-[calc(25%-12px)] lg:w-[calc(20%-12.8px)] xl:w-[calc(16.666%-13.33px)]"
+                    <div
+                        key={product.id}
+                        className="h-full snap-start flex-none w-[calc(50%-8px)] sm:w-[calc(33.333%-10.66px)] md:w-[calc(25%-12px)] lg:w-[calc(20%-12.8px)] xl:w-[calc(16.666%-13.33px)]"
                     >
                         <ProductCard product={product} />
                     </div>

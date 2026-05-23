@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMe, login, logout, sendSigupOTP, signup } from "../controllers/authController.js";
+import { getMe, login, logout, sendSigupOTP, signup, sendResetOTP, resetPassword, updateName, updatePassword, deleteAccount } from "../controllers/authController.js";
 import { authenticate } from "../middleware/auth.js";
 
 
@@ -14,5 +14,12 @@ router.post('/login', login);
 router.post('/logout', logout);
 
 router.get('/me', authenticate, getMe);
+
+router.post('/send-reset-otp', sendResetOTP);
+router.post('/reset-password', resetPassword);
+
+router.put('/update-name', authenticate, updateName);
+router.put('/update-password', authenticate, updatePassword);
+router.delete('/account', authenticate, deleteAccount);
 
 export default router;

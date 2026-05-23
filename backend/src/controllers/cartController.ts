@@ -25,7 +25,7 @@ export const getCart = async (req: Request, res: Response) => {
     const cart = await getOrCreateCart(req.userId!)
     const items = await db
         .selectFrom('cart_items')
-        .innerJoin('products', 'product_id', 'cart_items.product_id')
+        .innerJoin('products', 'products.id', 'cart_items.product_id')
         .leftJoin('product_images', (join) =>
             join
                 .onRef('product_images.product_id', '=', 'products.id')
@@ -37,6 +37,8 @@ export const getCart = async (req: Request, res: Response) => {
             'cart_items.quantity',
             'products.id as product_id',
             'products.name',
+            'products.price',
+            'products.mrp',
             'products.stock',
             'product_images.url as image_url',
         ])
@@ -87,7 +89,7 @@ export const addToCart = async (req: Request, res: Response) => {
         .executeTakeFirst();
 
     if (existingItem) {
-        const newQuantity = existingItem.quantity + quantity;
+        const newQuantity = Number(existingItem.quantity) + Number(quantity);
 
         if (product.stock < newQuantity) {
             throw new AppError('Not enough stock available.', 400);
@@ -129,8 +131,9 @@ export const updateCartItem = async (req: Request, res: Response) => {
         throw new AppError("Item ID is required.", 400);
     }
 
-    const { quantity } = req.body;
-    if (quantity === undefined || quantity < 1) {
+    let { quantity } = req.body;
+    quantity = Number(quantity);
+    if (isNaN(quantity) || quantity < 1) {
         throw new AppError("Valid quantity is required.", 400);
     }
     const cart = await getOrCreateCart(req.userId!);

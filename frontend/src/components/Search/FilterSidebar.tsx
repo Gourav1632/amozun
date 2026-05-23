@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function FilterSidebar() {
     const router = useRouter();
@@ -10,6 +10,12 @@ export default function FilterSidebar() {
     // Local state for custom price inputs
     const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
     const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
+
+    // Sync state if URL changes (e.g. new search clears params)
+    useEffect(() => {
+        setMinPrice(searchParams.get('minPrice') || '');
+        setMaxPrice(searchParams.get('maxPrice') || '');
+    }, [searchParams]);
 
     const currentCategory = searchParams.get('category');
     const currentMinDiscount = searchParams.get('minDiscount');
@@ -22,6 +28,19 @@ export default function FilterSidebar() {
             params.delete(key);
         }
         // When changing category or other major filters, reset page to 1
+        params.delete('page');
+        router.push(`/search?${params.toString()}`);
+    };
+
+    const handleFiltersChange = (updates: Record<string, string | null>) => {
+        const params = new URLSearchParams(searchParams.toString());
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value) {
+                params.set(key, value);
+            } else {
+                params.delete(key);
+            }
+        });
         params.delete('page');
         router.push(`/search?${params.toString()}`);
     };
@@ -85,10 +104,10 @@ export default function FilterSidebar() {
             <div className="mb-6">
                 <h3 className="font-bold text-[#0F1111] text-sm mb-2">Price</h3>
                 <ul className="text-sm space-y-1 text-[#0F1111] mb-2">
-                    <li><button onClick={() => { setMinPrice(''); setMaxPrice('500'); handleFilterChange('maxPrice', '500'); handleFilterChange('minPrice', null); }} className="hover:text-[#c45500]">Under ₹500</button></li>
-                    <li><button onClick={() => { setMinPrice('500'); setMaxPrice('1000'); handleFilterChange('minPrice', '500'); handleFilterChange('maxPrice', '1000'); }} className="hover:text-[#c45500]">₹500 - ₹1,000</button></li>
-                    <li><button onClick={() => { setMinPrice('1000'); setMaxPrice('5000'); handleFilterChange('minPrice', '1000'); handleFilterChange('maxPrice', '5000'); }} className="hover:text-[#c45500]">₹1,000 - ₹5,000</button></li>
-                    <li><button onClick={() => { setMinPrice('5000'); setMaxPrice(''); handleFilterChange('minPrice', '5000'); handleFilterChange('maxPrice', null); }} className="hover:text-[#c45500]">Over ₹5,000</button></li>
+                    <li><button onClick={() => { setMinPrice(''); setMaxPrice('500'); handleFiltersChange({ minPrice: null, maxPrice: '500' }); }} className="hover:text-[#c45500]">Under ₹500</button></li>
+                    <li><button onClick={() => { setMinPrice('500'); setMaxPrice('1000'); handleFiltersChange({ minPrice: '500', maxPrice: '1000' }); }} className="hover:text-[#c45500]">₹500 - ₹1,000</button></li>
+                    <li><button onClick={() => { setMinPrice('1000'); setMaxPrice('5000'); handleFiltersChange({ minPrice: '1000', maxPrice: '5000' }); }} className="hover:text-[#c45500]">₹1,000 - ₹5,000</button></li>
+                    <li><button onClick={() => { setMinPrice('5000'); setMaxPrice(''); handleFiltersChange({ minPrice: '5000', maxPrice: null }); }} className="hover:text-[#c45500]">Over ₹5,000</button></li>
                 </ul>
                 <form onSubmit={handlePriceSubmit} className="flex items-center gap-2 mt-2">
                     <input 

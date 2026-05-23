@@ -4,7 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { sendOrderConfirmationEmail } from "../services/emailService.js";
 
 export const placeOrder = async (req: Request, res: Response) => {
-    const { shippingAddress } = req.body;
+    const { shippingAddress, buyNowItem } = req.body;
 
     if (!shippingAddress) {
         throw new AppError("Shipping address is required.", 400);
@@ -12,33 +12,58 @@ export const placeOrder = async (req: Request, res: Response) => {
 
     const userId = req.userId!;
 
-    // 1. Get user's cart
-    const cart = await db
-        .selectFrom("carts")
-        .where("user_id", "=", userId)
-        .select("id")
-        .executeTakeFirst();
+    let cartItems: any[] = [];
+    let cartId: string | null = null;
 
-    if (!cart) {
-        throw new AppError("Cart not found.", 404);
-    }
+    if (buyNowItem) {
+        const { productId, quantity } = buyNowItem;
+        if (!productId || !quantity) throw new AppError("Invalid buy now item.", 400);
 
-    // 2. Get cart items with product details
-    const cartItems = await db
-        .selectFrom("cart_items")
-        .innerJoin("products", "products.id", "cart_items.product_id")
-        .where("cart_items.cart_id", "=", cart.id)
-        .select([
-            "cart_items.product_id",
-            "cart_items.quantity",
-            "products.name",
-            "products.price",
-            "products.stock",
-        ])
-        .execute();
+        const product = await db
+            .selectFrom("products")
+            .where("id", "=", productId)
+            .select(["id as product_id", "name", "price", "stock"])
+            .executeTakeFirst();
 
-    if (cartItems.length === 0) {
-        throw new AppError("Cart is empty.", 400);
+        if (!product) throw new AppError("Product not found.", 404);
+
+        cartItems = [{
+            product_id: product.product_id,
+            quantity: Number(quantity),
+            name: product.name,
+            price: product.price,
+            stock: product.stock
+        }];
+    } else {
+        // 1. Get user's cart
+        const cart = await db
+            .selectFrom("carts")
+            .where("user_id", "=", userId)
+            .select("id")
+            .executeTakeFirst();
+
+        if (!cart) {
+            throw new AppError("Cart not found.", 404);
+        }
+        cartId = cart.id;
+
+        // 2. Get cart items with product details
+        cartItems = await db
+            .selectFrom("cart_items")
+            .innerJoin("products", "products.id", "cart_items.product_id")
+            .where("cart_items.cart_id", "=", cartId)
+            .select([
+                "cart_items.product_id",
+                "cart_items.quantity",
+                "products.name",
+                "products.price",
+                "products.stock",
+            ])
+            .execute();
+
+        if (cartItems.length === 0) {
+            throw new AppError("Cart is empty.", 400);
+        }
     }
 
     // 3. Verify stock for all items
@@ -97,11 +122,13 @@ export const placeOrder = async (req: Request, res: Response) => {
             })
             .execute();
 
-        // d. Clear the cart
-        await trx
-            .deleteFrom("cart_items")
-            .where("cart_id", "=", cart.id)
-            .execute();
+        // d. Clear the cart (only if not Buy Now)
+        if (cartId && !buyNowItem) {
+            await trx
+                .deleteFrom("cart_items")
+                .where("cart_id", "=", cartId)
+                .execute();
+        }
 
         return newOrder.id;
     });
@@ -137,7 +164,42 @@ export const getMyOrders = async (req: Request, res: Response) => {
         .orderBy("created_at", "desc")
         .execute();
 
-    res.json({ status: "success", data: orders });
+    // Fetch items for these orders
+    const orderIds = orders.map(o => o.id);
+    let itemsByOrderId: Record<string, any[]> = {};
+    
+    if (orderIds.length > 0) {
+        const orderItems = await db
+            .selectFrom("order_items")
+            .leftJoin("product_images", (join) =>
+                join
+                    .onRef("product_images.product_id", "=", "order_items.product_id")
+                    .on("product_images.is_primary", "=", true)
+            )
+            .where("order_items.order_id", "in", orderIds)
+            .select([
+                "order_items.order_id",
+                "order_items.product_id",
+                "order_items.product_name_snapshot",
+                "product_images.url as image_url"
+            ])
+            .execute();
+            
+        orderItems.forEach(item => {
+            const id = item.order_id;
+            if (id) {
+                if (!itemsByOrderId[id]) itemsByOrderId[id] = [];
+                itemsByOrderId[id]!.push(item);
+            }
+        });
+    }
+
+    const ordersWithItems = orders.map(order => ({
+        ...order,
+        items: itemsByOrderId[order.id] || []
+    }));
+
+    res.json({ status: "success", data: ordersWithItems });
 };
 
 export const getOrderById = async (req: Request, res: Response) => {

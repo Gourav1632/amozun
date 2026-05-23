@@ -4,7 +4,25 @@ import { db } from "../db/index.js";
 import { AppError } from "../utils/AppError.js";
 
 export const getAllProducts = async (req: Request, res: Response) => {
-    const { search, category, page = "1", limit = "12", minPrice, maxPrice, minDiscount, sortBy, sortOrder } = req.query;
+    let { search, category, page = "1", limit = "12", minPrice, maxPrice, minDiscount, sortBy, sortOrder } = req.query;
+
+    let finalSearchQuery = typeof search === 'string' ? search : undefined;
+    let parsedMinPrice = minPrice ? parseFloat(minPrice as string) : undefined;
+    let parsedMaxPrice = maxPrice ? parseFloat(maxPrice as string) : undefined;
+
+    if (finalSearchQuery) {
+        const maxMatch = finalSearchQuery.match(/(?:under|below|less than)\s*(\d+)/i);
+        if (maxMatch && maxMatch[1]) {
+            parsedMaxPrice = parseFloat(maxMatch[1]);
+            finalSearchQuery = finalSearchQuery.replace(maxMatch[0], '').trim();
+        }
+
+        const minMatch = finalSearchQuery.match(/(?:over|above|more than)\s*(\d+)/i);
+        if (minMatch && minMatch[1]) {
+            parsedMinPrice = parseFloat(minMatch[1]);
+            finalSearchQuery = finalSearchQuery.replace(minMatch[0], '').trim();
+        }
+    }
 
     let query = db
         .selectFrom('products')
@@ -25,20 +43,20 @@ export const getAllProducts = async (req: Request, res: Response) => {
             'product_images.url as image_url',
         ]);
 
-    if (search && typeof search === 'string') {
-        query = query.where('products.name', 'ilike', `%${search}%`)
+    if (finalSearchQuery) {
+        query = query.where(sql`to_tsvector('english', products.name || ' ' || categories.name)`, '@@', sql`plainto_tsquery('english', ${finalSearchQuery})`);
     }
 
     if (category && typeof category === 'string') {
         query = query.where('categories.slug', 'ilike', `%${category}%`);
     }
 
-    if (minPrice && typeof minPrice === 'string') {
-        query = query.where('products.price', '>=', parseFloat(minPrice));
+    if (parsedMinPrice !== undefined) {
+        query = query.where('products.price', '>=', parsedMinPrice);
     }
 
-    if (maxPrice && typeof maxPrice === 'string') {
-        query = query.where('products.price', '<=', parseFloat(maxPrice));
+    if (parsedMaxPrice !== undefined) {
+        query = query.where('products.price', '<=', parsedMaxPrice);
     }
 
     if (minDiscount && typeof minDiscount === 'string') {
@@ -75,20 +93,20 @@ export const getAllProducts = async (req: Request, res: Response) => {
         .innerJoin('categories', 'categories.id', 'products.category_id')
         .select(db.fn.countAll().as('total'));
 
-    if (search && typeof search === 'string') {
-        countQuery = countQuery.where('products.name', 'ilike', `%${search}%`);
+    if (finalSearchQuery) {
+        countQuery = countQuery.where(sql`to_tsvector('english', products.name || ' ' || categories.name)`, '@@', sql`plainto_tsquery('english', ${finalSearchQuery})`);
     }
 
     if (category && typeof category === 'string') {
         countQuery = countQuery.where('categories.slug', 'ilike', `%${category}%`);
     }
 
-    if (minPrice && typeof minPrice === 'string') {
-        countQuery = countQuery.where('products.price', '>=', parseFloat(minPrice));
+    if (parsedMinPrice !== undefined) {
+        countQuery = countQuery.where('products.price', '>=', parsedMinPrice);
     }
 
-    if (maxPrice && typeof maxPrice === 'string') {
-        countQuery = countQuery.where('products.price', '<=', parseFloat(maxPrice));
+    if (parsedMaxPrice !== undefined) {
+        countQuery = countQuery.where('products.price', '<=', parsedMaxPrice);
     }
 
     if (minDiscount && typeof minDiscount === 'string') {
@@ -149,5 +167,25 @@ export const getProductById = async (req: Request, res: Response) => {
     res.json({
         status: "success",
         data: { ...product, images },
+    });
+};
+
+export const getSearchSuggestions = async (req: Request, res: Response) => {
+    const { q } = req.query;
+    if (!q || typeof q !== 'string' || q.trim() === '') {
+        res.json({ status: 'success', data: [] });
+        return;
+    }
+
+    const suggestions = await db
+        .selectFrom('categories')
+        .select('name')
+        .where('name', 'ilike', `%${q}%`)
+        .limit(8)
+        .execute();
+
+    res.json({
+        status: 'success',
+        data: suggestions.map(s => s.name)
     });
 };

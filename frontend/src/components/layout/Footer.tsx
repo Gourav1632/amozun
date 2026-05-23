@@ -1,91 +1,30 @@
+'use client';
+
 import { Globe } from "lucide-react";
 import Link from "next/link";
-
+import Image from "next/image";
 
 const Footer = () => {
 
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
         <div className="flex flex-col w-full mx-auto">
-            <Link href="#">
-                <div className="flex bg-[#37475a] hover:bg-[#485769] justify-center">
-                    <p className="text-white text-xs py-4">Back to top</p>
+            <button onClick={scrollToTop} className="w-full outline-none">
+                <div className="flex bg-[#37475a] hover:bg-[#485769] justify-center transition-colors">
+                    <p className="text-white text-xs py-4 font-medium">Back to top</p>
                 </div>
-            </Link>
+            </button>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4  md:px-32 gap-4 px-5 bg-[#232F3E] justify-center py-10 md:space-x-16 border-b border-slate-600">
-
-                <div className="link-footer">
-                    <h5>Get to Know Us</h5>
-                    <ul>
-                        <li><Link href="/">Blog</Link></li>
-                        <li><Link href="/">About Amazon</Link></li>
-                        <li><Link href="/">Investor Relations</Link></li>
-                        <li><Link href="/">Amazon Devices</Link></li>
-                        <li><Link href="/">Amazon Science</Link></li>
-                    </ul>
-                </div>
-
-                <div className="link-footer">
-                    <h5>Make Money with Us</h5>
-                    <ul>
-                        <li><Link href="/">Sell products on Amazon</Link></li>
-                        <li><Link href="/">Sell on Amazon Business</Link></li>
-                        <li><Link href="/">Sell apps on Amazon</Link></li>
-                        <li><Link href="/">Become an Affiliate</Link></li>
-                        <li><Link href="/">Advertise Your Products</Link></li>
-                        <li><Link href="/">Self-Publish with Us</Link></li>
-                        <li><Link href="/">Host an Amazon Hub</Link></li>
-                        <li><Link href="/">See More Make Money with Us</Link></li>
-                    </ul>
-                </div>
-
-                <div className="link-footer">
-                    <h5>Amazon Payment Products</h5>
-                    <ul>
-                        <li><Link href="/">Amazon Business Card</Link></li>
-                        <li><Link href="/">Shop with Points</Link></li>
-                        <li><Link href="/">Investor Relations</Link></li>
-                        <li><Link href="/">Reload Your Balance</Link></li>
-                        <li><Link href="/">Amazon Currency Converter</Link></li>
-                    </ul>
-                </div>
-
-                <div className="link-footer">
-                    <h5>Let Us Help You</h5>
-                    <ul>
-                        <li><Link href="/">Amazon and COVID-19</Link></li>
-                        <li><Link href="/">Your Account</Link></li>
-                        <li><Link href="/">Your Orders</Link></li>
-                        <li><Link href="/">Shipping Rates & Policies</Link></li>
-                        <li><Link href="/">Returns & Replacements</Link></li>
-                        <li><Link href="/">Manage Your Content and Devices</Link></li>
-                        <li><Link href="/">Amazon Assistant</Link></li>
-                        <li><Link href="/">Help</Link></li>
-                    </ul>
-                </div>
-
+            <div className="flex max-md:flex-col items-center bg-[#131A22] justify-center py-6">
+                <Link href="/" className="flex items-center justify-center">
+                    <Image src="/images/logo.png" alt="Amozun Logo" width={100} height={30} className="object-contain opacity-80 hover:opacity-100 transition-opacity" style={{ width: 'auto', height: 'auto' }} />
+                </Link>
             </div>
 
-            <div className="flex max-md:flex-col items-center bg-[#232F3E] justify-center py-1">
-                <div className="text-white text-2xl font-bold md:mr-20">Amozun</div>
-
-                <div className="flex items-center space-x-2 max-md:mb-4">
-                    <div className="flex space-around border rounded border-slate-400 px-2 py-2 text-xs text-slate-100 cursor-pointer">
-                        <Globe className="h-4 mr-3" />
-                        <span>English</span>
-                    </div>
-                    <div className="flex border rounded border-slate-400 px-2 py-2 text-xs text-slate-100 cursor-pointer">
-                        <span className="text-slate-100 mr-3">$</span>
-                        <span>USD - U.S. Dollar</span>
-                    </div>
-                    <div className="flex items-center border rounded border-slate-400 px-2 py-2 text-xs text-slate-100 cursor-pointer">
-                        <span className="mr-3 text-lg">🇺🇸</span>
-                        <span>United States</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex flex-col py-8 bg-[#131A22] items-center">
+            <div className="flex flex-col pt-0 py-8 bg-[#131A22] items-center">
                 <div className="flex flex-col items-center">
                     <ul className="flex whitespace-nowrap max-md:flex-col items-center text-xs text-slate-300 space-x-4 max-md:space-y-2">
                         <li className="hover:underline">

@@ -5,6 +5,7 @@ import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignupPage() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function SignupPage() {
     const [otp, setOtp] = useState("");
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -112,11 +114,7 @@ export default function SignupPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-[6px] text-[13px] rounded-lg cursor-pointer border border-[#a88734]
-                                       bg-gradient-to-b from-[#f7dea0] to-[#f0c14b]
-                                       hover:from-[#f5d78e] hover:to-[#eeb933]
-                                       active:from-[#f0c14b] active:to-[#f0c14b]
-                                       disabled:opacity-60 disabled:cursor-not-allowed mb-4"
+                            className="w-full bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 shadow-sm text-sm font-medium mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isLoading ? "Sending OTP..." : "Verify email"}
                         </button>
@@ -146,10 +144,7 @@ export default function SignupPage() {
 
                         <button
                             type="submit"
-                            className="w-full py-[6px] text-[13px] rounded-lg cursor-pointer border border-[#a88734]
-                                       bg-gradient-to-b from-[#f7dea0] to-[#f0c14b]
-                                       hover:from-[#f5d78e] hover:to-[#eeb933]
-                                       active:from-[#f0c14b] active:to-[#f0c14b] mt-4 mb-4"
+                            className="w-full bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 shadow-sm text-sm font-medium mt-4 mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             Continue
                         </button>
@@ -179,16 +174,25 @@ export default function SignupPage() {
                             <label className="text-[13px] font-bold text-[#0F1111] block mb-1">
                                 Password
                             </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="At least 6 characters"
-                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
-                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
-                                required
-                                minLength={6}
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="At least 6 characters"
+                                    className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] pr-10
+                                               focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                    required
+                                    minLength={6}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                >
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                             <p className="text-[11px] text-[#0F1111] mt-1 flex items-center gap-1">
                                 <span className="text-blue-600 italic">i</span> Passwords must be at least 6 characters.
                             </p>
@@ -197,11 +201,7 @@ export default function SignupPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-[6px] text-[13px] rounded-lg cursor-pointer border border-[#a88734]
-                                       bg-gradient-to-b from-[#f7dea0] to-[#f0c14b]
-                                       hover:from-[#f5d78e] hover:to-[#eeb933]
-                                       active:from-[#f0c14b] active:to-[#f0c14b]
-                                       disabled:opacity-60 disabled:cursor-not-allowed mb-4"
+                            className="w-full bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 shadow-sm text-sm font-medium mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isLoading ? "Creating account..." : "Verify and Create account"}
                         </button>

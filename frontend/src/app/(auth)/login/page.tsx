@@ -5,11 +5,13 @@ import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const { login } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +47,7 @@ export default function LoginPage() {
 
             {/* Sign in card */}
             <div className="w-full max-w-[350px] border border-[#ddd] rounded-lg p-6 mb-4"
-                 style={{ boxShadow: '0 2px 4px 0 rgba(0,0,0,.13)' }}>
+                style={{ boxShadow: '0 2px 4px 0 rgba(0,0,0,.13)' }}>
 
                 <h1 className="text-[28px] font-normal text-[#0F1111] mb-3">
                     Sign in
@@ -61,7 +63,7 @@ export default function LoginPage() {
                 <form onSubmit={handleLogin}>
                     <div className="mb-3">
                         <label className="text-[13px] font-bold text-[#0F1111] block mb-1">
-                            Email or mobile phone number
+                            Email
                         </label>
                         <input
                             type="email"
@@ -79,29 +81,34 @@ export default function LoginPage() {
                             <label className="text-[13px] font-bold text-[#0F1111]">
                                 Password
                             </label>
-                            <Link href="#" className="text-[13px] text-blue-600 hover:text-orange-500 hover:underline">
+                            <Link href="/reset-password" className="text-[13px] text-blue-600 hover:text-orange-500 hover:underline">
                                 Forgot password?
                             </Link>
                         </div>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="At least 6 characters"
-                            className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px]
-                                       focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="At least 6 characters"
+                                className="w-full border border-[#a6a6a6] rounded-[3px] px-[7px] py-[3px] text-[13px] h-[31px] pr-10
+                                           focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,.5)]"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
                     </div>
 
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-[6px] text-[13px] rounded-lg cursor-pointer border border-[#a88734]
-                                   bg-gradient-to-b from-[#f7dea0] to-[#f0c14b]
-                                   hover:from-[#f5d78e] hover:to-[#eeb933]
-                                   active:from-[#f0c14b] active:to-[#f0c14b]
-                                   disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] rounded-lg py-2 shadow-sm text-sm font-medium mt-2 mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {isLoading ? "Signing in..." : "Sign in"}
                     </button>
@@ -129,10 +136,7 @@ export default function LoginPage() {
                 </div>
                 <Link
                     href="/signup"
-                    className="flex items-center justify-center w-full py-[6px] text-[13px] rounded-lg cursor-pointer
-                               border border-[#adb1b8] bg-gradient-to-b from-[#f7f8fa] to-[#e7e9ec]
-                               hover:from-[#e7eaf0] hover:to-[#d9dce1]
-                               text-[#0F1111]"
+                    className="flex items-center justify-center w-full bg-white hover:bg-gray-50 border border-gray-300 shadow-sm rounded-lg py-2 text-sm font-medium text-[#0F1111]"
                 >
                     Create your Amozun account
                 </Link>
