@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { logger } from "../utils/logger.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -9,7 +10,7 @@ export const sendOrderConfirmationEmail = async (
     totalAmount: number
 ) => {
     if (!process.env.RESEND_API_KEY) {
-        console.warn('RESEND_API_KEY not found. Skipping email sending.');
+        logger.warn('RESEND_API_KEY not found. Skipping email sending.');
         return;
     }
 
@@ -29,10 +30,10 @@ export const sendOrderConfirmationEmail = async (
             `,
         });
 
-        console.log(`Confirmation email sent to ${email}`);
+        logger.info(`Confirmation email sent to ${email}`);
     } catch (err) {
         // Don't use AppError here - email failure should not fail the order
-        console.error('Failed to send email: ', err);
+        logger.error('Failed to send email: ', err);
     }
 };
 
@@ -40,8 +41,8 @@ export const sendOrderConfirmationEmail = async (
 
 export const sendOtpEmail = async (email: string, otp: string) => {
     if (!process.env.RESEND_API_KEY) {
-        console.warn("RESEND_API_KEY not found. Skipping OTP email.");
-        console.log(`[DEVELOPMENT ONLY] OTP for ${email} is: ${otp}`);
+        logger.warn("RESEND_API_KEY not found. Skipping OTP email.");
+        logger.info(`[DEVELOPMENT ONLY] OTP for ${email} is: ${otp}`);
         return;
     }
 
@@ -60,9 +61,9 @@ export const sendOtpEmail = async (email: string, otp: string) => {
         </div>
       `,
         });
-        console.log(`OTP email sent to ${email}`);
+        logger.info(`OTP email sent to ${email}`);
     } catch (error) {
-        console.error("Failed to send OTP email:", error);
+        logger.error("Failed to send OTP email:", error);
         throw new Error("Failed to send verification email. Please try again.");
     }
 };

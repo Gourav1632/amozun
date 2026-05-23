@@ -2,6 +2,8 @@ import express from "express";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import "dotenv/config"
+import morgan from "morgan";
+import { logger } from "./utils/logger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from './routes/auth.js'
 import categoryRoutes from './routes/categories.js';
@@ -22,6 +24,17 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Setup Morgan to use Winston for HTTP request logging
+const morganFormat = ":method :url :status :res[content-length] - :response-time ms";
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        logger.info(message.trim());
+      },
+    },
+  })
+);
 
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok', message: 'Amozun server is running' })
@@ -39,5 +52,5 @@ app.use('/api/recently-viewed', recentlyViewedRoutes);
 app.use(errorHandler);
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    logger.info(`Server is running on http://localhost:${port}`);
 })

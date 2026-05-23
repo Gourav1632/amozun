@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { sql } from "kysely";
 import { db } from "../db/index.js";
 import { AppError } from "../utils/AppError.js";
+import { logger } from "../utils/logger.js";
 
 export const trackProductView = async (userId: string, productId: string) => {
     try {
@@ -18,7 +19,7 @@ export const trackProductView = async (userId: string, productId: string) => {
             )
             .execute();
     } catch (e) {
-        console.error('Failed to log recently viewed product:', e);
+        logger.error('Failed to log recently viewed product:', e);
     }
 };
 
@@ -38,7 +39,7 @@ export const addRecentlyViewed = async (req: Request, res: Response) => {
         await trackProductView(userId, productId);
         res.json({ status: "success", message: "Recently viewed updated" });
     } catch (e) {
-        console.error('Failed to log recently viewed product:', e);
+        logger.error('Failed to log recently viewed product:', e);
         throw new AppError("Failed to update recently viewed", 500);
     }
 };
@@ -70,7 +71,7 @@ export const getRecentlyViewed = async (req: Request, res: Response) => {
 
         res.json({ status: "success", data: recentlyViewed });
     } catch (e) {
-        console.error('Failed to fetch recently viewed products:', e);
+        logger.error('Failed to fetch recently viewed products:', e);
         throw new AppError("Failed to fetch recently viewed", 500);
     }
 };
