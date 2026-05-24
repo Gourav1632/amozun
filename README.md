@@ -2,6 +2,8 @@
 
 > A full-stack, production-ready e-commerce platform with a modern Amazon-style UI, secure payment processing, and a fully automated CI/CD pipeline.
 
+**🚀 Live Demo:** [https://amozun.vercel.app](https://amozun.vercel.app)
+
 ![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript)
@@ -26,6 +28,15 @@
 ## Overview
 
 Amozun is a decoupled e-commerce platform split into a **Next.js frontend** deployed on Vercel and a **Dockerized Express API** running on AWS EC2. It supports full user authentication, product browsing, cart management, and secure Stripe-powered checkout — all delivered with a fast, responsive UI.
+
+---
+
+## Demo Credentials
+
+For review purposes, you can use the following demo account to test out the application without having to sign up:
+
+- **Email:** `demo@amozun.in`
+- **Password:** `demo123`
 
 ---
 

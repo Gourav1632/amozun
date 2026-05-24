@@ -1,3 +1,5 @@
+'use client'
+
 import HeroSlider from "@/components/Home/HeroSlider";
 import HomeProductRow from "@/components/Home/HomeProductRow";
 import { apiFetch } from "@/lib/api";
@@ -5,27 +7,56 @@ import Image from "next/image";
 import Link from "next/link";
 import AuthBox from "@/components/Home/AuthBox";
 import RecentlyViewedClient from "@/components/Home/RecentlyViewedClient";
+import { useEffect, useState } from "react";
 
-async function fetchFilteredProducts(queryParams: string) {
-    try {
-        const res = await apiFetch(`/products?${queryParams}`, { method: 'GET' })
-        return res.data || [];
-    } catch (error) {
-        console.error(`Failed to fetch products with params ${queryParams}:`, error);
-        return [];
+export default function Home() {
+    const [data, setData] = useState<{
+        electronics: any[],
+        fashionTop: any[],
+        homeTop: any[],
+        headphoneTop: any[],
+        deals: any[],
+        allOther: any[]
+    } | null>(null);
+
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const [electronics, fashionTop, homeTop, headphoneTop, deals, allOther] = await Promise.all([
+                    apiFetch('/products?category=electronics&limit=10').then(res => res.data || []),
+                    apiFetch('/products?category=women&limit=4').then(res => res.data || []),
+                    apiFetch('/products?category=home&limit=4').then(res => res.data || []),
+                    apiFetch('/products?category=headphones&limit=4').then(res => res.data || []),
+                    apiFetch('/products?minDiscount=10&sortBy=discount&sortOrder=desc&limit=10').then(res => res.data || []),
+                    apiFetch('/products?limit=10').then(res => res.data || [])
+                ]);
+                setData({ electronics, fashionTop, homeTop, headphoneTop, deals, allOther });
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        
+        loadData();
+    }, []);
+
+    if (isLoading || !data) {
+        return (
+            <main className="flex flex-col min-h-screen bg-[#eaeded]">
+                <HeroSlider />
+                <div className="relative max-w-[1500px] mx-auto w-full px-4 sm:px-6 -mt-[40px] sm:-mt-[80px] md:-mt-[120px] lg:-mt-[250px] z-20">
+                    <div className="flex justify-center py-20 bg-transparent">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e77600]"></div>
+                    </div>
+                </div>
+            </main>
+        );
     }
-}
 
-export default async function Home() {
-    // Fetch all required data concurrently
-    const [electronics, fashionTop, homeTop, headphoneTop, deals, allOther] = await Promise.all([
-        fetchFilteredProducts('category=electronics&limit=10'),
-        fetchFilteredProducts('category=women&limit=4'),
-        fetchFilteredProducts('category=home&limit=4'),
-        fetchFilteredProducts('category=headphones&limit=4'),
-        fetchFilteredProducts('minDiscount=10&sortBy=discount&sortOrder=desc&limit=10'),
-        fetchFilteredProducts('limit=10') // generic products
-    ]);
+    const { electronics, fashionTop, homeTop, headphoneTop, deals, allOther } = data;
 
     return (
         <main className="flex flex-col min-h-screen bg-[#eaeded]">
