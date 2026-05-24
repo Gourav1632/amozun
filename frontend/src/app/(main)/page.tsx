@@ -48,8 +48,43 @@ export default function Home() {
             <main className="flex flex-col min-h-screen bg-[#eaeded]">
                 <HeroSlider />
                 <div className="relative max-w-[1500px] mx-auto w-full px-4 sm:px-6 -mt-[40px] sm:-mt-[80px] md:-mt-[120px] lg:-mt-[250px] z-20">
-                    <div className="flex justify-center py-20 bg-transparent">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e77600]"></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+                        {/* Skeleton for 4-grid boxes */}
+                        {[1, 2].map(box => (
+                            <div key={box} className="bg-white p-4 z-20 flex flex-col h-[420px] animate-pulse">
+                                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                                <div className="grid grid-cols-2 gap-4 flex-grow mb-4">
+                                    {[1, 2, 3, 4].map(item => (
+                                        <div key={item} className="bg-gray-200 h-full w-full rounded-sm"></div>
+                                    ))}
+                                </div>
+                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                            </div>
+                        ))}
+                        
+                        {/* Skeleton for single hero box */}
+                        <div className="bg-white p-4 z-20 flex flex-col h-[420px] animate-pulse">
+                            <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                            <div className="bg-gray-200 h-full w-full mb-4 flex-grow rounded-sm"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                        </div>
+
+                        {/* AuthBox (Loads instantly, so we can just show it) */}
+                        <AuthBox />
+                    </div>
+
+                    {/* Skeleton for Product Rows */}
+                    <div className="flex flex-col gap-5">
+                        {[1, 2, 3].map(row => (
+                            <div key={row} className="bg-white p-5 w-full h-[320px] animate-pulse flex flex-col shadow-sm">
+                                <div className="h-6 bg-gray-200 rounded w-48 mb-4"></div>
+                                <div className="flex gap-5 overflow-hidden">
+                                    {[1, 2, 3, 4, 5, 6].map(item => (
+                                        <div key={item} className="bg-gray-200 h-[220px] w-[200px] rounded-sm flex-shrink-0"></div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </main>
